@@ -90,6 +90,9 @@ $ sh . /scripts/ecs_exec_stg -t ((task-id)) # Example) . /scripts/ecs_exec_stg -
 
 ## Deployment config
 
+### Railway 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/yiamej?referralCode=NtAl-c)
+
 ### AWS Amplify(frontend)
 
 ```yml
