@@ -41,5 +41,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.5"
+  },
+  "dependencies": {
+    "frourio-framework-prisma-generators": "^2.2.0"
   }
 }
