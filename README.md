@@ -1,4 +1,5 @@
 ## Ecosystem
+
 - [frourio-framework-prisma-generators](https://github.com/InterfaceX-co-jp/frourio-framework-prisma-generators)
   - prisma generator that keeps your DX and speed 🚀
 
@@ -6,7 +7,7 @@
 
 ```bash
 # At root dir
-cd frourio-template-railway-tailwind
+cd frourio-framework
 ```
 
 Setup .env
@@ -83,7 +84,7 @@ Finally, call the API to perform actual uploads and other operations.
 - [SSH connection to ECS Fargate using SSM (Qiita)](https://qiita.com/kouji0705/items/005ea6d7c21ddd24ebb3)
 
 ```bash
-$ cd frourio-template-railway-tailwind
+$ cd frourio-framework
 $ sh . /scripts/ecs_exec_stg -t ((task-id)) # Example) . /scripts/ecs_exec_stg -t 941f8694308b4adea44cb07ff9e50c30
 ```
 
