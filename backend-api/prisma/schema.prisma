@@ -23,23 +23,7 @@ generator frourio_framework_prisma_model_generator {
 }
 
 model User {
-    id    Int     @id @default(autoincrement())
-    email String  @unique
-    name  String?
-
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
-    UserProfile UserProfile[]
-}
-
-model UserProfile {
-    id     Int  @id @default(autoincrement())
-    userId Int
-    user   User @relation(fields: [userId], references: [id])
-
-    bio      String?
-    image    String?
-    username String
+    id Int @id @default(autoincrement())
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

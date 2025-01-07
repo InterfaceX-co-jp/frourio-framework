@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { build } = require('esbuild');
-const config = require('./config.common');
+import { build } from 'esbuild';
+import config from './config.common.mjs';
 // const { sentryEsbuildPlugin } = require('@sentry/esbuild-plugin');
 
 build({

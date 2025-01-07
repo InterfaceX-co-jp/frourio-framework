@@ -8,6 +8,7 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:tailwindcss/recommended',
     'prettier',
+    'plugin:@next/next/recommended',
   ],
   plugins: ['@typescript-eslint', 'react'],
   parser: '@typescript-eslint/parser',
@@ -43,6 +44,8 @@ module.exports = {
     '@typescript-eslint/consistent-type-imports': 'error',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'error',
+    'tailwindcss/no-custom-classname': 'off',
+    '@typescript-eslint/no-unused-expressions': 'warn',
   },
   overrides: [
     {
@@ -51,7 +54,7 @@ module.exports = {
     },
     {
       files: ['*.test.ts'],
-      rules: { 'max-lines': 'off', 'max-nested-callbacks': 'off', 'max-depth': 'off', "next-line": "off" },
+      rules: { 'max-lines': 'off', 'max-nested-callbacks': 'off', 'max-depth': 'off', 'next-line': 'off' },
     },
   ],
 }
