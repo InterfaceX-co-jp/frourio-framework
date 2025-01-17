@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as the base image
-FROM node:20.18.0
+FROM node:22.11.0
 
 # Set working directory
 WORKDIR /usr/src/app
@@ -11,7 +11,7 @@ COPY . .
 # Install dependencies
 RUN npm install
 RUN npm run generate
-RUN node ./scripts/build.prod.js
+RUN node ./scripts/build.prod.mjs
 
 # Expose the port on which the application will run
 EXPOSE ${API_SERVER_PORT} 

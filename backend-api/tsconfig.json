@@ -18,6 +18,15 @@
     "incremental": true,
     "types": ["vitest/globals"]
   },
-  "include": ["**/*.ts", "**/*.js", ".eslintrc.js"],
+  "include": [
+    "**/*.ts",
+    "**/*.js",
+    "eslint.config.js",
+    "vite.config.mts",
+    "aspida.config.mjs",
+    "scripts/config.common.mjs",
+    "scripts/build.prod.mjs",
+    "scripts/build.dev.mjs"
+  ],
   "exclude": ["node_modules"]
 }
