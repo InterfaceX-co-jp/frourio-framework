@@ -62,7 +62,7 @@
     "@typescript-eslint/eslint-plugin": "^8.19.1",
     "@typescript-eslint/parser": "^8.19.1",
     "commonTypesWithClient": "file:./commonTypesWithClient",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.0",
     "esbuild-node-externals": "^1.16.0",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
