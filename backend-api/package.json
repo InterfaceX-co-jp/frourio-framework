@@ -13,7 +13,6 @@
     "dev:build": "tsx --watch ./scripts/build.dev.js",
     "dev:run": "node --watch index.js",
     "dev:frourio": "frourio --watch",
-    "dev:prisma": "prisma generate --watch",
     "prebuild": "npm run generate && npm run migrate:deploy",
     "build": "tsx ./scripts/build.prod.js",
     "generate": "run-p generate:*",
