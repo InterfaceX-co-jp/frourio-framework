@@ -20,8 +20,8 @@ export class ExampleCommand implements ICommandLineInterface {
     return command;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async execute(_options: ExecuteOptions) {
-    // eslint-disable-line @typescript-eslint/no-unused-vars
     console.log('This is an example command that does nothing.');
   }
 }
