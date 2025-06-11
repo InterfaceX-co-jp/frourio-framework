@@ -11,12 +11,12 @@
   "scripts": {
     "predev": "npm run generate && npm run migrate:deploy",
     "dev": "run-p dev:*",
-    "dev:build": "node ./scripts/build.dev.mjs",
-    "dev:server": "node-dev --respawn index.js",
+    "dev:build": "tsx --watch ./scripts/build.dev.js",
+    "dev:run": "node --watch index.js",
     "dev:frourio": "frourio --watch",
     "dev:prisma": "prisma generate --watch",
     "prebuild": "npm run generate && npm run migrate:deploy",
-    "build": "node ./scripts/build.prod.mjs",
+    "build": "tsx ./scripts/build.prod.js",
     "generate": "run-p generate:*",
     "generate:aspida": "aspida",
     "generate:frourio": "frourio",
@@ -32,7 +32,10 @@
     "seed:production": "tsx prisma/seed.production.ts",
     "test": "vitest run --pool=forks",
     "typecheck": "tsc --noEmit",
-    "lint": "npx eslint ."
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint --fix .",
+    "tsx": "tsx",
+    "cli": "tsx consoleCommands/cli/index.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.production.ts"
