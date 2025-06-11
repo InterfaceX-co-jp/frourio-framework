@@ -22,6 +22,14 @@
     },
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "*.js", ".eslintrc.js", "vite.config.mts"],
+  "include": [
+    "aspida.config.cjs",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "*.js",
+    "eslint.config.mjs",
+    "vite.config.mts"
+  ],
   "exclude": ["node_modules"]
 }

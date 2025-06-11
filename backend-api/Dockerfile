@@ -9,12 +9,13 @@ COPY package*.json .
 COPY . .
 
 # Install dependencies
-RUN npm install
+RUN npm i
 RUN npm run generate
-RUN node ./scripts/build.prod.mjs
+RUN node ./scripts/build.prod.js
 
 # Expose the port on which the application will run
 EXPOSE ${API_SERVER_PORT} 
 
 # Define the command to run the application.
-CMD [ "npm", "run", "start" ]
+# Use node directly with the compiled JavaScript file
+CMD ["npm", "run", "start"]
