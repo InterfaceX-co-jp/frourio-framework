@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { ExampleCommand } from '../commands/Example.command';
 
 const program = new Command();
 
@@ -12,5 +13,8 @@ program
 // Register commands
 // const addFreeTrialCommand = AddFreeTrialToExistingUsersCommand.create();
 // program.addCommand(addFreeTrialCommand.getCommand());
+
+const exampleCommand = ExampleCommand.create();
+program.addCommand(exampleCommand.getCommand());
 
 program.parse();
