@@ -14,7 +14,7 @@ export const authUserMiddleware = async (
   reply: FastifyReply,
 ) => {
   try {
-    const verified: JwtPayload = await req.jwtVerify();
+    const _verified: JwtPayload = await req.jwtVerify(); // eslint-disable-line @typescript-eslint/no-unused-vars
   } catch (err) {
     console.error('JWT verify error', err);
     reply.send(err);

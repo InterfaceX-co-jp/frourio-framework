@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { ICommandLineInterface } from './Command.interface';
+import type { ICommandLineInterface } from './Command.interface';
 
 interface ExecuteOptions {
   [key: string]: any;
@@ -20,7 +20,8 @@ export class ExampleCommand implements ICommandLineInterface {
     return command;
   }
 
-  private async execute(options: ExecuteOptions) {
+  private async execute(_options: ExecuteOptions) {
+    // eslint-disable-line @typescript-eslint/no-unused-vars
     console.log('This is an example command that does nothing.');
   }
 }
