@@ -1,11 +1,13 @@
-import server from "$/$server";
-import cookie from "@fastify/cookie";
-import cors from "@fastify/cors";
-import helmet from "@fastify/helmet";
-import jwt from "@fastify/jwt";
-import { config } from "dotenv";
-import type { FastifyServerFactory } from "fastify";
-import Fastify from "fastify";
+import server from '$/$server';
+import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import jwt from '@fastify/jwt';
+import { config } from 'dotenv';
+import type { FastifyServerFactory } from 'fastify';
+import Fastify from 'fastify';
+import { NODE_ENV } from '$/env';
+import { CORS_ORIGINS } from '$/config/cors';
 
 config();
 
@@ -22,21 +24,27 @@ export const init = (serverFactory?: FastifyServerFactory) => {
   const app = Fastify({
     maxParamLength: 1000, // This defaults to 100: returns 404 error params surpass this length
     ...serverFactory,
-    logger: true,
+    logger:
+      NODE_ENV === 'production'
+        ? undefined
+        : {
+            level: 'info',
+            // Using a simpler logger configuration to avoid worker thread issues
+            transport: {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+                translateTime: 'SYS:standard',
+                ignore: 'pid,hostname',
+              },
+            },
+          },
   });
-
-  const CORS_ORIGINS = [
-    "http://localhost:3000",
-    // 'https://main.d3hd8kguh00tqy.amplifyapp.com',
-    // /https:\/\/pr-\d+\.d3hd8kguh00tqy\.amplifyapp\.com/,
-    // 'https://live-stg.aliveland.io',
-    // 'https://live.aliveland.io',
-  ];
 
   app.register(helmet);
   app.register(cors, { origin: CORS_ORIGINS, credentials: true });
   app.register(cookie);
-  app.register(jwt, { secret: process.env.API_JWT_SECRET ?? "" });
+  app.register(jwt, { secret: process.env.API_JWT_SECRET ?? '' });
 
   server(app, { basePath: process.env.API_BASE_PATH });
 
