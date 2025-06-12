@@ -26,7 +26,7 @@ export const init = (serverFactory?: FastifyServerFactory) => {
     ...serverFactory,
     logger:
       NODE_ENV === 'production'
-        ? undefined
+        ? true // Defualt log
         : {
             level: 'info',
             // Using a simpler logger configuration to avoid worker thread issues
