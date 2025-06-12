@@ -54,6 +54,7 @@
     "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
     "fastify": "^5.3.3",
+    "pino-pretty": "^13.0.0",
     "zod": "^3.25.61"
   },
   "devDependencies": {

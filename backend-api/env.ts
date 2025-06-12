@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+export const NODE_ENV = process.env.NODE_ENV ?? 'N/A';
+
 export const API_SERVER_PORT = +(process.env.API_SERVER_PORT ?? '8080');
 export const API_BASE_PATH = process.env.API_BASE_PATH ?? '';
 export const API_JWT_SECRET = process.env.API_JWT_SECRET ?? '';
