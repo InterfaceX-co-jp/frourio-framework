@@ -6,10 +6,13 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 prisma
-  .$transaction((tx) =>
-    Promise.all([
-      // register your seeder here
-    ]),
+  .$transaction(
+    (
+      _tx, // eslint-disable-line @typescript-eslint/no-unused-vars
+    ) =>
+      Promise.all([
+        // register your seeder here
+      ]),
   )
   .catch((e) => {
     console.error(e);

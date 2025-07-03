@@ -1,17 +1,17 @@
 version: "3.9"
 services:
   postgres:
-    image: postgres:13.16
+    image: postgres:17.2
     restart: always
     ports:
       - 5432:5432
     environment:
       POSTGRES_USER: "root"
       POSTGRES_PASSWORD: "root"
-      POSTGRES_DB: "nftfun"
+      POSTGRES_DB: "frourio-framework"
       TZ: "Asia/Tokyo"
     volumes:
-  #     - database:/var/lib/postgresql/data
+      - database:/var/lib/postgresql/data
   # redis:
   #   image: "redis:7.2.4-alpine"
   #   ports:
