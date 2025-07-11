@@ -104,7 +104,7 @@ export const withRetry = async <T>(
   maxRetries: number = 3,
   delay: number = 1000,
 ): Promise<T> => {
-  let lastError: Error;
+  let lastError: Error | undefined = undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -126,7 +126,9 @@ export const withRetry = async <T>(
     }
   }
 
-  throw lastError!;
+  throw (
+    lastError ?? new Error('Database operation failed after maximum retries')
+  );
 };
 
 // Function to check connection health with retry
