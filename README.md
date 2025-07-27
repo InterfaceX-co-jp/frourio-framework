@@ -1,3 +1,108 @@
+# Frourio Framework
+
+A full-stack TypeScript framework combining Next.js frontend with Fastify backend, featuring type-safe API communication and modern development tools.
+
+## Architecture Overview
+
+This repository follows a monorepo structure with clear separation between frontend and backend applications:
+
+```
+frourio-framework/
+├── frontend-web/          # Next.js frontend application
+├── backend-api/           # Fastify backend API
+├── scripts/              # Deployment and utility scripts
+├── Docker/               # Docker configuration files
+└── docker-compose.yml    # Local development database
+```
+
+### Technology Stack
+
+#### Backend API (`backend-api/`)
+
+- **Framework**: [Fastify](https://fastify.dev/) - High-performance Node.js web framework
+- **Language**: TypeScript with strict type checking
+- **Database**: PostgreSQL with [Prisma](https://prisma.io/) ORM
+- **API Generation**: [Frourio](https://frourio.com/) for type-safe API development
+- **Authentication**: JWT with admin/user role separation
+- **Testing**: Vitest with Prisma Fabbrica for test data generation
+- **Build Tool**: ESBuild for fast compilation
+
+#### Frontend Web (`frontend-web/`)
+
+- **Framework**: [Next.js 15](https://nextjs.org/) with React 19
+- **Language**: TypeScript with strict type checking
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with [Flowbite](https://flowbite.com/) components
+- **State Management**: [Jotai](https://jotai.org/) for atomic state management
+- **Data Fetching**: [SWR](https://swr.vercel.app/) with type-safe API client
+- **Forms**: React Hook Form with Zod validation
+- **Storage**: Supabase integration for file uploads
+- **Testing**: Vitest for unit testing
+
+#### Shared Infrastructure
+
+- **Type Safety**: Aspida for end-to-end type safety between frontend and backend
+- **Code Generation**: Automatic API client and path generation
+- **Database**: PostgreSQL with Docker for local development
+- **Deployment**: Support for Railway, AWS Amplify, and ECS
+
+### Key Features
+
+#### Type-Safe API Communication
+
+- **Aspida**: Generates type-safe API clients from backend route definitions
+- **Shared Types**: Common types and constants shared between frontend and backend
+- **Automatic Generation**: API clients and route paths generated automatically
+
+#### Authentication System
+
+- **Dual Role System**: Separate authentication for admin and user roles
+- **JWT Tokens**: Secure token-based authentication
+- **Middleware**: Route protection with role-based access control
+
+#### Database Management
+
+- **Prisma ORM**: Type-safe database operations with automatic migrations
+- **Code Generation**: Database models and factory functions auto-generated
+- **Seeding**: Separate seed files for development and production environments
+
+#### Development Experience
+
+- **Hot Reload**: Both frontend and backend support hot reloading
+- **Parallel Development**: Run both applications simultaneously with `npm run dev`
+- **Type Checking**: Continuous type checking across the entire stack
+- **Linting**: Consistent code style with ESLint and Prettier
+
+### Directory Structure
+
+#### Backend API Structure
+
+```
+backend-api/
+├── api/                  # API route definitions (Frourio)
+├── app/                  # Application utilities and helpers
+├── config/               # Configuration files (CORS, JWT, etc.)
+├── domain/               # Domain models and business logic
+├── middleware/           # Authentication and request middleware
+├── prisma/               # Database schema, migrations, and seeds
+├── service/              # Application services and Fastify setup
+└── tests/                # Test files and setup
+```
+
+#### Frontend Web Structure
+
+```
+frontend-web/
+├── src/
+│   ├── components/       # Reusable UI components
+│   ├── features/         # Feature-specific code (auth, UI hooks)
+│   ├── layouts/          # Page layout components
+│   ├── pages/            # Next.js pages and API routes
+│   ├── styles/           # Global styles and Tailwind config
+│   ├── utils/            # Utility functions and API clients
+│   └── views/            # Page view components
+└── public/               # Static assets
+```
+
 ## Ecosystem
 
 - [frourio-framework-prisma-generators](https://github.com/InterfaceX-co-jp/frourio-framework-prisma-generators)
@@ -90,7 +195,8 @@ $ sh . /scripts/ecs_exec_stg -t ((task-id)) # Example) . /scripts/ecs_exec_stg -
 
 ## Deployment config
 
-### Railway 
+### Railway
+
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/yiamej?referralCode=NtAl-c)
 
 ### AWS Amplify(frontend)
