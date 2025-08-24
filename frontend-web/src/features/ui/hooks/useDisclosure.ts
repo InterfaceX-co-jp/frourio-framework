@@ -1,3 +1,4 @@
+// disable-eslint @typescript-eslint/no-unused-expressions
 //https://github.com/mantinedev/mantine/blob/master/src/mantine-hooks/src/use-disclosure/use-disclosure.ts
 import { useCallback, useState } from 'react'
 

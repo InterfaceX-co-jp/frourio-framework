@@ -1,4 +1,4 @@
-const flowbite = require('flowbite-react/tailwind')
+import flowbite from 'flowbite-react/tailwind'
 
 function range(start, end, increment = 1) {
   const count = Math.floor((end - start + increment) / increment)
@@ -108,7 +108,7 @@ const config = {
       },
     },
   },
-  plugins: [require('flowbite/plugin'), flowbite.plugin()],
+  plugins: [flowbite.plugin()],
 }
 
 export default config

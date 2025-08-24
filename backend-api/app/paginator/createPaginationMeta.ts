@@ -1,4 +1,4 @@
-import { PaginationMeta } from './types';
+import type { PaginationMeta } from './types';
 
 export const createPaginationMeta = (args: {
   totalCount: number;
