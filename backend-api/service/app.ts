@@ -42,7 +42,12 @@ export const init = (serverFactory?: FastifyServerFactory) => {
   });
 
   app.register(helmet);
-  app.register(cors, { origin: CORS_ORIGINS, credentials: true });
+  app.register(cors, {
+    origin: CORS_ORIGINS,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   app.register(cookie);
   app.register(jwt, { secret: process.env.API_JWT_SECRET ?? '' });
 
