@@ -42,7 +42,7 @@ const isIntegrationTest = (file: { filepath?: string } | undefined) => {
 let isMigrated = false;
 
 beforeAll(async (info) => {
-  if (unneededServer(info)) return;
+  if (unneededServer({ filepath: info.file.filepath })) return;
 
   server = init();
   // since +1 is used for websocket, +11 is used for testing API server
@@ -88,7 +88,12 @@ afterEach(async (info) => {
 });
 
 afterAll(async (info) => {
-  if (unneededServer(info)) return;
+  if (
+    unneededServer({
+      filepath: info.file.filepath,
+    })
+  )
+    return;
 
   vi.clearAllMocks();
   vi.clearAllTimers();

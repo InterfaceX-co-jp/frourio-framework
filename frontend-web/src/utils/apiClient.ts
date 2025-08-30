@@ -2,10 +2,17 @@ import aspida from '@aspida/axios'
 import axios from 'axios'
 import api from '../../../backend-api/api/$api'
 import { adminAuthStateInSessionStorage, userAuthStateInSessionStorage } from './sessionStorage'
+import { API_ORIGIN, API_BASE_PATH } from '@/env'
 
-const defaultWithoutAuthAxiosInstance = axios.create()
-const adminAxiosInstance = axios.create()
-const userAxiosInstance = axios.create()
+const defaultWithoutAuthAxiosInstance = axios.create({
+  baseURL: `${API_ORIGIN}${API_BASE_PATH}`,
+})
+const adminAxiosInstance = axios.create({
+  baseURL: `${API_ORIGIN}${API_BASE_PATH}`,
+})
+const userAxiosInstance = axios.create({
+  baseURL: `${API_ORIGIN}${API_BASE_PATH}`,
+})
 
 adminAxiosInstance.interceptors.request.use(async (config) => {
   const token = adminAuthStateInSessionStorage.get().token
