@@ -5,7 +5,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "concurrently --prefix-colors=\"bgBlue.bold,bgMagenta.bold\" --kill-others-on-fail \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "concurrently --names=\"frontend,backend\" --prefix-colors=\"bgBlue.bold,bgMagenta.bold\" --kill-others-on-fail \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "npm run dev --prefix frontend-web",
     "dev:server": "npm run dev --prefix backend-api",
     "generate": "concurrently --prefix-colors=\"bgBlue.bold,bgMagenta.bold\" --kill-others-on-fail \"npm run generate:client\" \"npm run generate:server\"",

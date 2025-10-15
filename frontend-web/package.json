@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --prefix-colors=\"bgBlue.bold,bgMagenta.bold,bgGreen.bold\" --kill-others-on-fail \"npm run dev:next\" \"npm run dev:aspida\" \"npm run dev:path\"",
+    "dev": "concurrently --names=\"next,aspida,pathpida\" --prefix-colors=\"bgBlue.bold,bgMagenta.bold,bgGreen.bold\" --kill-others-on-fail \"npm run dev:next\" \"npm run dev:aspida\" \"npm run dev:path\"",
     "dev:next": "next dev",
     "dev:aspida": "aspida --watch --config aspida.config.cjs",
     "dev:path": "pathpida --enableStatic --ignorePath .gitignore --watch",
