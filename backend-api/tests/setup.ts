@@ -28,7 +28,8 @@ export async function refreshDatabase() {
 }
 
 const unneededServer = (file: { filepath?: string } | undefined) => {
-  return !file?.filepath?.includes('test.ts');
+  // Only start server for integration tests
+  return !file?.filepath?.includes('integration.test');
 };
 
 const isIntegrationTest = (file: { filepath?: string } | undefined) => {

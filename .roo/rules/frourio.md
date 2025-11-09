@@ -302,7 +302,7 @@ export class UserModel {
 ```ts
 import { PrismaBaseRepository } from "$/app/foundation/repository/PrismaBaseRepository";
 import { createPaginationMeta } from "$/app/paginator/createPaginationMeta";
-import { PaginationMeta } from "$/commonTypesWithClient";
+import { PaginationMeta } from "commonTypesWithClient";
 import { IkenShoukaiCaseModel } from "$/prisma/__generated__/models/IkenShoukaiCase.model";
 import { IkenShoukaiCaseStatus, PrismaClient } from "@prisma/client";
 

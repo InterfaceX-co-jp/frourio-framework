@@ -8,6 +8,8 @@ import type { FastifyServerFactory } from 'fastify';
 import Fastify from 'fastify';
 import { NODE_ENV } from '$/env';
 import { CORS_ORIGINS } from '$/config/cors';
+import { AbstractFrourioFrameworkError } from '$/app/error/FrourioFrameworkError';
+import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/app/http/ApiResponse';
 
 config();
 
@@ -51,6 +53,22 @@ export const init = (serverFactory?: FastifyServerFactory) => {
   app.register(cookie);
   app.register(jwt, { secret: process.env.API_JWT_SECRET ?? '' });
 
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof AbstractFrourioFrameworkError) {
+      console.error({
+        error,
+        requestId: request.id,
+        body: request.body,
+        params: request.params,
+        query: request.query,
+      });
+
+      reply
+        .status(error.httpStatusCode)
+        .header('Content-Type', PROBLEM_DETAILS_MEDIA_TYPE)
+        .send(error.toProblemDetails());
+    }
+  });
   server(app, { basePath: process.env.API_BASE_PATH });
 
   return app;
