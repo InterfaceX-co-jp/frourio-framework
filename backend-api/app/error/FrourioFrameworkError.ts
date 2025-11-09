@@ -1,3 +1,6 @@
+import type { ProblemDetails } from '../http/rfc9457.types';
+import { DEFAULT_PROBLEM_TYPE } from '../http/rfc9457.types';
+
 export enum ErrorCode {
   // General errors (1000-1999)
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
@@ -54,18 +57,22 @@ export const ErrorCodeToHttpStatus: Record<ErrorCode, number> = {
 };
 
 /**
- * Base exception class for all Kanako Japan Reservation system exceptions
+ * Base exception class for all Frourio Framework exceptions
  */
 export abstract class AbstractFrourioFrameworkError extends Error {
   public readonly code: ErrorCode;
   public readonly httpStatusCode: number;
   public readonly details?: Record<string, any>;
   public readonly timestamp: Date;
+  public readonly instance?: string;
+  public readonly typeUri?: string;
 
   constructor(args: {
     message: string;
     code: keyof typeof ErrorCode;
     details?: Record<string, any>;
+    instance?: string;
+    typeUri?: string;
   }) {
     super(args.message);
     this.name = this.constructor.name;
@@ -73,6 +80,8 @@ export abstract class AbstractFrourioFrameworkError extends Error {
     this.httpStatusCode = ErrorCodeToHttpStatus[args.code];
     this.details = args.details;
     this.timestamp = new Date();
+    this.instance = args.instance;
+    this.typeUri = args.typeUri;
 
     // Ensures proper prototype chain for instanceof checks
     Object.setPrototypeOf(this, new.target.prototype);
@@ -84,24 +93,36 @@ export abstract class AbstractFrourioFrameworkError extends Error {
   }
 
   /**
-   * Convert exception to JSON format for API responses
+   * Convert exception to RFC9457 Problem Details format
+   * @see https://www.rfc-editor.org/rfc/rfc9457.html
    */
-  toJSON(): {
-    error: {
-      code: ErrorCode;
-      message: string;
-      details?: Record<string, any>;
-      timestamp: string;
+  toProblemDetails(): ProblemDetails {
+    const problemDetails: ProblemDetails = {
+      type: this.typeUri || DEFAULT_PROBLEM_TYPE,
+      title: this.code,
+      status: this.httpStatusCode,
+      detail: this.message,
     };
-  } {
-    return {
-      error: {
-        code: this.code,
-        message: this.message,
-        ...(this.details && { details: this.details }),
-        timestamp: this.timestamp.toISOString(),
-      },
-    };
+
+    // Add instance if provided
+    if (this.instance) {
+      problemDetails.instance = this.instance;
+    }
+
+    // Add error code as extension member
+    problemDetails.code = this.code;
+
+    // Add timestamp as extension member
+    problemDetails.timestamp = this.timestamp.toISOString();
+
+    // Add details as extension members if provided
+    if (this.details) {
+      Object.entries(this.details).forEach(([key, value]) => {
+        problemDetails[key] = value;
+      });
+    }
+
+    return problemDetails;
   }
 
   /**

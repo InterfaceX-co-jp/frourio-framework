@@ -1,21 +1,35 @@
-export const returnSuccess = <T>(val: T) => ({
-  status: 200 as const,
-  body: val,
-});
+/**
+ * Response helpers for HTTP APIs
+ *
+ * These functions now use RFC9457-compliant Problem Details format for error responses.
+ * @see https://www.rfc-editor.org/rfc/rfc9457.html
+ */
 
-export const returnGetError = (e: unknown) => {
-  return { status: 404 as const, body: e };
-};
+// Export all RFC9457-compliant helpers
+export {
+  returnSuccess,
+  returnProblemDetails,
+  returnGetError,
+  returnPostError,
+  returnPutError,
+  returnPatchError,
+  returnDeleteError,
+  returnBadRequest,
+  returnUnauthorized,
+  returnForbidden,
+  returnNotFound,
+  returnConflict,
+  returnInternalServerError,
+  createProblemDetails,
+  errorToProblemDetails,
+} from './rfc9457.response';
 
-export const returnPatchError = (e: unknown) => {
-  return { status: 403 as const, body: e };
-};
-
-export const returnPostError = <T>(e: unknown) => {
-  return { status: 403 as const, body: e as T };
-};
-
-export const returnPutError = (e: unknown) => {
-  // TODO: log error
-  return { status: 500 as const, body: e };
-};
+// Export types
+export type {
+  ProblemDetails,
+  CreateProblemDetailsOptions,
+} from './rfc9457.types';
+export {
+  PROBLEM_DETAILS_MEDIA_TYPE,
+  DEFAULT_PROBLEM_TYPE,
+} from './rfc9457.types';

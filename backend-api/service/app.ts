@@ -9,6 +9,7 @@ import Fastify from 'fastify';
 import { NODE_ENV } from '$/env';
 import { CORS_ORIGINS } from '$/config/cors';
 import { AbstractFrourioFrameworkError } from '$/app/error/FrourioFrameworkError';
+import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/app/http/rfc9457.types';
 
 config();
 
@@ -62,7 +63,10 @@ export const init = (serverFactory?: FastifyServerFactory) => {
         query: request.query,
       });
 
-      reply.status(error.httpStatusCode).send(error.toJSON());
+      reply
+        .status(error.httpStatusCode)
+        .header('Content-Type', PROBLEM_DETAILS_MEDIA_TYPE)
+        .send(error.toProblemDetails());
     }
   });
   server(app, { basePath: process.env.API_BASE_PATH });
