@@ -38,9 +38,6 @@ export default [
       react: {
         version: 'detect',
       },
-      next: {
-        rootDir: 'frontend-web',
-      },
     },
     rules: {
       // React rules
