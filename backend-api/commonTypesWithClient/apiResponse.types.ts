@@ -5,10 +5,10 @@
  * in a type-safe way.
  */
 
-import type { ProblemDetails } from '../app/http/rfc9457.types';
+import type { ProblemDetails } from './ProblemDetails.types';
 
 // Re-export ProblemDetails for use in frontend
-export type { ProblemDetails } from '../app/http/rfc9457.types';
+export type { ProblemDetails } from './ProblemDetails.types';
 
 /**
  * Wraps a success response body type with ProblemDetails for error cases

@@ -6,10 +6,12 @@ import {
   InternalServerError,
 } from '../app/error/CommonErrors';
 import {
-  createProblemDetails,
-  errorToProblemDetails,
-} from '../app/http/rfc9457.response';
-import { PROBLEM_DETAILS_MEDIA_TYPE } from '../app/http/rfc9457.types';
+  ApiResponse,
+  PROBLEM_DETAILS_MEDIA_TYPE,
+} from '../app/http/ApiResponse';
+
+// Access utils through ApiResponse facade
+const { createProblemDetails, errorToProblemDetails } = ApiResponse.utils;
 
 describe('RFC9457 Error Handling', () => {
   describe('ProblemDetails Creation', () => {
