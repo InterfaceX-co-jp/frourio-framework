@@ -19,6 +19,14 @@ npm-audit-fix: ## Run npm audit fix
 	npm audit fix --prefix backend-api
 	npm audit fix --prefix frontend-web
 
+lint: ## Run linting for all projects
+	npm --prefix backend-api run lint
+	npm --prefix frontend-web run lint
+
+lint-fix: ## Run linting with auto-fix for all projects
+	npm --prefix backend-api run lint:fix
+	npm --prefix frontend-web run lint:fix
+
 env-setup-local: ## Setup dotenvs
 	cp backend-api/.env.example backend-api/.env	
 	cp frontend-web/.env.local.example frontend-web/.env.local
