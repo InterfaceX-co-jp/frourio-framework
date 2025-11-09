@@ -16,8 +16,8 @@
     "generate:aspida": "aspida --config aspida.config.cjs",
     "test": "vitest run --pool=forks",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

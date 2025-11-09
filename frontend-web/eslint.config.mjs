@@ -7,6 +7,18 @@ import tailwindcssPlugin from 'eslint-plugin-tailwindcss'
 import nextPlugin from '@next/eslint-plugin-next'
 
 export default [
+  {
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'out/**',
+      '.turbo/**',
+      'dist/**',
+      'build/**',
+      '*.config.js',
+      '*.config.mjs',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
