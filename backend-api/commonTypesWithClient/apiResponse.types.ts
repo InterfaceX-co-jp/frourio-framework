@@ -15,7 +15,7 @@ export type { ProblemDetails } from './ProblemDetails.types';
  *
  * Usage in index.ts:
  * ```typescript
- * import type { ApiResponse } from '$/commonTypesWithClient/apiResponse.types';
+ * import type { ApiResponse } from 'commonTypesWithClient/apiResponse.types';
  *
  * export type Methods = DefineMethods<{
  *   get: {

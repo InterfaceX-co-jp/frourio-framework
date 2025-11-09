@@ -28,7 +28,7 @@ resBody: ApiResponse<User>;
 
 ```typescript
 import type { DefineMethods } from 'aspida';
-import type { ApiResponse } from '$/commonTypesWithClient';
+import type { ApiResponse } from 'commonTypesWithClient';
 
 export type Methods = DefineMethods<{
   get: {
@@ -216,10 +216,14 @@ function ErrorDisplay({ error }: { error: ProblemDetails }) {
       {error.timestamp && (
         <p>Time: {new Date(error.timestamp).toLocaleString()}</p>
       )}
-      
+
       {/* Display additional fields if present */}
       {Object.entries(error).map(([key, value]) => {
-        if (['type', 'title', 'status', 'detail', 'code', 'timestamp'].includes(key)) {
+        if (
+          ['type', 'title', 'status', 'detail', 'code', 'timestamp'].includes(
+            key,
+          )
+        ) {
           return null;
         }
         return (
@@ -304,7 +308,7 @@ console.log(response.name);
 if (isApiError(response)) {
   // Use the detail field for user-friendly messages
   toast.error(response.detail);
-  
+
   // Log full error for debugging
   console.error('API Error:', response);
 }
@@ -335,24 +339,24 @@ if (isApiError(response)) {
 ```typescript
 async function fetchWithRetry<T>(
   apiCall: () => Promise<ApiResponse<T>>,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<T> {
   for (let i = 0; i < maxRetries; i++) {
     const response = await apiCall();
-    
+
     if (isApiSuccess(response)) {
       return response;
     }
-    
+
     // Only retry on server errors (5xx)
     if (response.status < 500) {
       throw new Error(response.detail);
     }
-    
+
     // Wait before retrying
-    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
   }
-  
+
   throw new Error('Max retries reached');
 }
 ```
@@ -373,10 +377,10 @@ const [state, setState] = useState<{
 });
 
 async function loadData() {
-  setState(prev => ({ ...prev, loading: true }));
-  
+  setState((prev) => ({ ...prev, loading: true }));
+
   const response = await apiClient.users.$get();
-  
+
   if (isApiSuccess(response)) {
     setState({ data: response, error: null, loading: false });
   } else {
@@ -390,7 +394,7 @@ async function loadData() {
 ```typescript
 async function handleSubmit(data: CreateUserInput) {
   const response = await apiClient.users.$post({ body: data });
-  
+
   if (isApiError(response)) {
     // Show validation errors
     if (response.errors) {
@@ -403,7 +407,7 @@ async function handleSubmit(data: CreateUserInput) {
     }
     return;
   }
-  
+
   // Success
   toast.success('User created successfully');
   router.push(`/users/${response.id}`);

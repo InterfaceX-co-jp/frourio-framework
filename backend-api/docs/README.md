@@ -38,9 +38,10 @@ RFC9457 defines a standard format for HTTP API error responses called "Problem D
 ### Quick Example
 
 **Backend (index.ts):**
+
 ```typescript
 import type { DefineMethods } from 'aspida';
-import type { ApiResponse } from '$/commonTypesWithClient';
+import type { ApiResponse } from 'commonTypesWithClient';
 
 type User = { id: number; name: string };
 
@@ -52,6 +53,7 @@ export type Methods = DefineMethods<{
 ```
 
 **Backend (controller.ts):**
+
 ```typescript
 import { returnSuccess, returnGetError } from '$/app/http/response';
 import { NotFoundError } from '$/app/error/CommonErrors';
@@ -74,6 +76,7 @@ export default defineController(() => ({
 ```
 
 **Frontend:**
+
 ```typescript
 import { isApiSuccess } from '@/commonTypesWithClient';
 
@@ -145,12 +148,12 @@ returnInternalServerError(detail, extensions?) // 500
 
 ```typescript
 import {
-  ValidationError,      // 400 - Validation failures
-  UnauthorizedError,    // 401 - Authentication failures
-  ForbiddenError,       // 403 - Authorization failures
-  NotFoundError,        // 404 - Resource not found
-  BadRequestError,      // 400 - Malformed requests
-  InternalServerError,  // 500 - Unexpected errors
+  ValidationError, // 400 - Validation failures
+  UnauthorizedError, // 401 - Authentication failures
+  ForbiddenError, // 403 - Authorization failures
+  NotFoundError, // 404 - Resource not found
+  BadRequestError, // 400 - Malformed requests
+  InternalServerError, // 500 - Unexpected errors
 } from '$/app/error/CommonErrors';
 ```
 
@@ -175,6 +178,7 @@ npm test rfc9457.test.ts
 ### Standards Compliance
 
 This implementation follows:
+
 - [RFC9457 - Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457.html)
 - [RFC3986 - Uniform Resource Identifier (URI): Generic Syntax](https://www.rfc-editor.org/rfc/rfc3986.html)
 
