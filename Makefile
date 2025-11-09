@@ -19,9 +19,22 @@ npm-audit-fix: ## Run npm audit fix
 	npm audit fix --prefix backend-api
 	npm audit fix --prefix frontend-web
 
+lint: ## Run linting for all projects
+	npm --prefix backend-api run lint
+	npm --prefix frontend-web run lint
+
+lint-fix: ## Run linting with auto-fix for all projects
+	npm --prefix backend-api run lint:fix
+	npm --prefix frontend-web run lint:fix
+
 env-setup-local: ## Setup dotenvs
 	cp backend-api/.env.example backend-api/.env	
 	cp frontend-web/.env.local.example frontend-web/.env.local
+
+package-reset-safe: ## Remove node_modules and package-lock.json safely
+	rm -rf node_modules package-lock.json
+	rm -rf backend-api/node_modules backend-api/package-lock.json
+	rm -rf frontend-web/node_modules frontend-web/package-lock.json
 
 
 .DEFAULT_GOAL=help

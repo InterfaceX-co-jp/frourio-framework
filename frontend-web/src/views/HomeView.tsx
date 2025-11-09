@@ -1,5 +1,4 @@
 import { defaultWithoutAuthApiClient } from '@/utils/apiClient'
-import { Button } from 'flowbite-react'
 import { toast } from 'react-toastify'
 
 export default function HomeView() {
@@ -18,9 +17,7 @@ export default function HomeView() {
 
   return (
     <div>
-      <div>
-        <Button onClick={handleHealthcheck}>Healthcheck</Button>
-      </div>
+      <button onClick={handleHealthcheck}>Healthcheck</button>
     </div>
   )
 }

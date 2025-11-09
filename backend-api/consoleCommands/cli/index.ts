@@ -10,10 +10,6 @@ program
   .description('frourio-framework CLI commands')
   .version('1.0.0');
 
-// Register commands
-// const addFreeTrialCommand = AddFreeTrialToExistingUsersCommand.create();
-// program.addCommand(addFreeTrialCommand.getCommand());
-
 const exampleCommand = ExampleCommand.create();
 program.addCommand(exampleCommand.getCommand());
 

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/frourio_framework.svg" alt="Frourio Framework">
+</p>
+
 # Frourio Framework
 
 A full-stack TypeScript framework combining Next.js frontend with Fastify backend, featuring type-safe API communication and modern development tools.

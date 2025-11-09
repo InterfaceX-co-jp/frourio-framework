@@ -1,4 +1,3 @@
-import { initialize } from '$/prisma/__generated__/fabbrica';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import util from 'util';
@@ -27,9 +26,6 @@ export async function refreshDatabase() {
     console.log({ error });
   }
 }
-
-const prismaClient = getPrismaClient();
-initialize({ prisma: prismaClient });
 
 const unneededServer = (file: { filepath?: string } | undefined) => {
   return !file?.filepath?.includes('test.ts');
