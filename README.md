@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/frourio_framework.svg" alt="Frourio Framework">
+  <img src="docs/frourio_framework.svg" alt="Frourio Framework" width="320" height="320">
 </p>
 
 # Frourio Framework
