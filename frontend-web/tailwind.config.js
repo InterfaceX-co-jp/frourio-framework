@@ -1,5 +1,3 @@
-import flowbite from 'flowbite-react/tailwind'
-
 function range(start, end, increment = 1) {
   const count = Math.floor((end - start + increment) / increment)
   return Array(count)
@@ -21,7 +19,6 @@ const vhs = ['10vh', '20vh', '30vh', '40vh', '50vh', '60vh', '70vh', '80vh', '90
 
 const config = {
   content: [
-    './node_modules/flowbite-react/lib/**/*.js',
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
@@ -29,7 +26,6 @@ const config = {
     './src/features/**/*.{js,ts,jsx,tsx,mdx}',
     './src/layouts/**/*.{js,ts,jsx,tsx,mdx}',
     './public/**/*.html',
-    flowbite.content(),
   ],
   theme: {
     extend: {
@@ -108,7 +104,6 @@ const config = {
       },
     },
   },
-  plugins: [flowbite.plugin()],
 }
 
 export default config

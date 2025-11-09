@@ -64,7 +64,7 @@
     "@typescript-eslint/parser": "^8.46.3",
     "commonTypesWithClient": "file:./commonTypesWithClient",
     "concurrently": "^9.2.1",
-    "esbuild": "^0.26.0",
+    "esbuild": "^0.25.0",
     "esbuild-node-externals": "^1.18.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
