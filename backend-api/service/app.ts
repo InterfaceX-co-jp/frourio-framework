@@ -9,7 +9,7 @@ import Fastify from 'fastify';
 import { NODE_ENV } from '$/env';
 import { CORS_ORIGINS } from '$/config/cors';
 import { AbstractFrourioFrameworkError } from '$/app/error/FrourioFrameworkError';
-import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/app/http/rfc9457.types';
+import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/app/http/ApiResponse';
 
 config();
 

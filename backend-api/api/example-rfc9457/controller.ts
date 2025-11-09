@@ -1,15 +1,10 @@
 /**
  * Example controller demonstrating RFC9457-compliant error handling
+ * Using the Response facade for clean, discoverable API
  */
 
 import { defineController } from './$relay';
-import {
-  returnSuccess,
-  returnGetError,
-  returnPostError,
-  returnBadRequest,
-  returnUnauthorized,
-} from '$/app/http/response';
+import { ApiResponse } from '$/app/http/ApiResponse';
 import {
   NotFoundError,
   ValidationError,
@@ -17,8 +12,8 @@ import {
 } from '$/app/error/CommonErrors';
 
 export default defineController(() => ({
-  // Example: Success response
-  get: () => returnSuccess({ message: 'RFC9457 example endpoint' }),
+  // Example: Success response using ApiResponse facade
+  get: () => ApiResponse.success({ message: 'RFC9457 example endpoint' }),
 
   // Example: Handling a NotFoundError
   // GET /example-rfc9457/123
@@ -61,29 +56,29 @@ export default defineController(() => ({
         });
       }
 
-      return returnSuccess({ message: 'Request processed successfully' });
+      return ApiResponse.success({ message: 'Request processed successfully' });
     } catch (error) {
-      return returnPostError(error);
+      return ApiResponse.method.post(error);
     }
   },
 
   // Example: Direct use of return helpers for specific status codes
   put: ({ body }) => {
-    // Validation example
+    // Validation example using Response facade
     if (!body.name) {
-      return returnBadRequest('Name is required', {
+      return ApiResponse.badRequest('Name is required', {
         field: 'name',
         received: body.name,
       });
     }
 
     if (!body.token) {
-      return returnUnauthorized('Authentication token is required', {
+      return ApiResponse.unauthorized('Authentication token is required', {
         hint: 'Please provide a valid token in the Authorization header',
       });
     }
 
-    return returnSuccess({ message: 'Updated successfully' });
+    return ApiResponse.success({ message: 'Updated successfully' });
   },
 
   // Example: Handling unknown errors
@@ -92,8 +87,8 @@ export default defineController(() => ({
       // Simulate an unexpected error
       throw new Error('Unexpected database error');
     } catch (error) {
-      // The returnGetError will automatically convert this to RFC9457 format
-      return returnGetError(error);
+      // Response.method.delete automatically converts to RFC9457 format
+      return ApiResponse.method.delete(error);
     }
   },
 }));

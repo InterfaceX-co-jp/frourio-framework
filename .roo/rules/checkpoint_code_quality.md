@@ -1,0 +1,4 @@
+- Do not export variables if there is nothing importing its module/file
+- For date management, never use native Date object. But use dayjs custom module `$dayjs`.
+- tailwindcss h-4 and w-4 is too small. use size-16 instead for those image/svg sizes.
+- only the used module should be exported. exporting module should be very selectively chosen. think the best way that client code look sophisticated and tidy.
