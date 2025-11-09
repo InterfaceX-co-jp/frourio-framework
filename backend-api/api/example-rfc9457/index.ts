@@ -30,4 +30,25 @@ export type Methods = DefineMethods<{
   delete: {
     resBody: ApiResponse<never>; // Never returns success, only errors
   };
+  patch: {
+    reqBody: {
+      name: string;
+      description?: string;
+      email: string;
+      age: number;
+      siteAreaSquareMeter?: number | null;
+      minCapacity: number;
+    };
+    resBody: ApiResponse<{
+      message: string;
+      data: {
+        name: string;
+        description?: string;
+        email: string;
+        age: number;
+        siteAreaSquareMeter?: number | null;
+        minCapacity: number;
+      };
+    }>;
+  };
 }>;

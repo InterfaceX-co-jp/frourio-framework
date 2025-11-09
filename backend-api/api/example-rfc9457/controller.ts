@@ -1,6 +1,7 @@
 /**
  * Example controller demonstrating RFC9457-compliant error handling
- * Using the Response facade for clean, discoverable API
+ * Using the ApiResponse facade for clean, discoverable API
+ * Includes examples with Zod validators and Validator facade
  */
 
 import { defineController } from './$relay';
@@ -10,6 +11,8 @@ import {
   ValidationError,
   UnauthorizedError,
 } from '$/app/error/CommonErrors';
+import { z } from 'zod';
+import { Validator } from '$/app/validation/Validator';
 
 export default defineController(() => ({
   // Example: Success response using ApiResponse facade
@@ -87,8 +90,52 @@ export default defineController(() => ({
       // Simulate an unexpected error
       throw new Error('Unexpected database error');
     } catch (error) {
-      // Response.method.delete automatically converts to RFC9457 format
+      // ApiResponse.method.delete automatically converts to RFC9457 format
       return ApiResponse.method.delete(error);
     }
+  },
+
+  // Example: Using Validator facade (Laravel-inspired)
+  // Clean, declarative validation with automatic RFC9457 error handling
+  patch: ({ body }) => {
+    // Validate and execute with business logic
+    return Validator.validateAndExecute(
+      body,
+      z.object({
+        name: z.string().min(1, '名前は必須です'),
+        description: z.string().optional(),
+        email: z.string().email('有効なメールアドレスを入力してください'),
+        age: z
+          .number()
+          .int('年齢は整数である必要があります')
+          .positive('年齢は正の数である必要があります')
+          .max(150, '年齢は150以下である必要があります'),
+        siteAreaSquareMeter: z
+          .union([
+            z.number().positive('敷地面積は正の数である必要があります'),
+            z.null(),
+          ])
+          .optional(),
+        minCapacity: z
+          .number()
+          .int()
+          .positive('最小定員は正の整数である必要があります'),
+      }),
+      (data) => {
+        // Business logic validation
+        if (data.age < 18) {
+          return ApiResponse.forbidden('18歳未満は登録できません', {
+            minAge: 18,
+            providedAge: data.age,
+          });
+        }
+
+        // Success response
+        return ApiResponse.success({
+          message: 'データが正常に更新されました',
+          data,
+        });
+      },
+    );
   },
 }));

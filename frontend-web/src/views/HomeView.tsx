@@ -127,6 +127,76 @@ export default function HomeView() {
     }
   }
 
+  // Example: Validator facade with valid data
+  const handleValidationSuccess = async () => {
+    try {
+      const response = await defaultWithoutAuthApiClient.example_rfc9457.$patch({
+        body: {
+          name: '山田太郎',
+          description: 'テストユーザー',
+          email: 'yamada@example.com',
+          age: 25,
+          siteAreaSquareMeter: 100.5,
+          minCapacity: 10,
+        },
+      })
+
+      handleApiResponse(response, {
+        successMessage: 'バリデーション成功！データが更新されました',
+      })
+    } catch (error) {
+      console.error('Request error:', error)
+      toast.error('Request failed!')
+    }
+  }
+
+  // Example: Validator facade with validation errors
+  const handleValidationErrors = async () => {
+    try {
+      const response = await defaultWithoutAuthApiClient.example_rfc9457.$patch({
+        body: {
+          name: '', // Invalid: empty
+          email: 'invalid-email', // Invalid: not email format
+          age: -5, // Invalid: negative
+          minCapacity: 0, // Invalid: must be positive
+        } as any,
+      })
+
+      handleApiResponse(response, {
+        onError: (error) => {
+          displayValidationErrors(error, {
+            showToast: true,
+            toastPrefix: 'バリデーションエラー',
+          })
+        },
+      })
+    } catch (error) {
+      console.error('Request error:', error)
+      toast.error('Request failed!')
+    }
+  }
+
+  // Example: Validator facade with business logic error (age < 18)
+  const handleBusinessLogicError = async () => {
+    try {
+      const response = await defaultWithoutAuthApiClient.example_rfc9457.$patch({
+        body: {
+          name: '未成年ユーザー',
+          email: 'minor@example.com',
+          age: 16, // Valid format but < 18
+          minCapacity: 5,
+        },
+      })
+
+      handleApiResponse(response, {
+        successMessage: '更新成功',
+      })
+    } catch (error) {
+      console.error('Request error:', error)
+      toast.error('Request failed!')
+    }
+  }
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ marginBottom: '20px' }}>
@@ -152,6 +222,25 @@ export default function HomeView() {
         </div>
       </div>
 
+      <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+        <h2>Validator Facade Examples (Backend PATCH endpoint)</h2>
+        <p>Examples using the Laravel-inspired Validator facade with Zod</p>
+        
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button onClick={handleValidationSuccess}>
+            ✅ Valid Data (Success)
+          </button>
+          
+          <button onClick={handleValidationErrors}>
+            ❌ Invalid Data (Validation Errors)
+          </button>
+          
+          <button onClick={handleBusinessLogicError}>
+            🚫 Valid but Age &lt; 18 (Business Logic Error)
+          </button>
+        </div>
+      </div>
+
       <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f5f5f5' }}>
         <h3>Error Handler Features:</h3>
         <ul>
@@ -160,6 +249,9 @@ export default function HomeView() {
           </li>
           <li>
             <code>displayValidationErrors()</code> - Parse validation errors
+          </li>
+          <li>
+            <code>Validator</code> - Laravel-inspired validation facade
           </li>
           <li>Automatic console logging with additional fields</li>
           <li>TypeScript type safety throughout</li>
