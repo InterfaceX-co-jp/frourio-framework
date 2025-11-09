@@ -1,20 +1,12 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-    provider = "prisma-client-js"
-}
-
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
-generator fabbrica {
-    provider    = "prisma-fabbrica"
-    output      = "__generated__/fabbrica"
-    tsconfig    = "../tsconfig.json"
-    noTranspile = true
+generator client {
+    provider = "prisma-client-js"
 }
 
 generator frourio_framework_prisma_model_generator {
@@ -23,7 +15,7 @@ generator frourio_framework_prisma_model_generator {
 }
 
 model User {
-    id Int @id @default(autoincrement())
+    id String @id @default(uuid())
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
