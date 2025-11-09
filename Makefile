@@ -23,6 +23,11 @@ env-setup-local: ## Setup dotenvs
 	cp backend-api/.env.example backend-api/.env	
 	cp frontend-web/.env.local.example frontend-web/.env.local
 
+package-reset-safe: ## Remove node_modules and package-lock.json safely
+	rm -rf node_modules package-lock.json
+	rm -rf backend-api/node_modules backend-api/package-lock.json
+	rm -rf frontend-web/node_modules frontend-web/package-lock.json
+
 
 .DEFAULT_GOAL=help
 .PHONY=help
