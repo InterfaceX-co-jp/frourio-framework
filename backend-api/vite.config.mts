@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import dotenv from 'dotenv';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 dotenv.config();
