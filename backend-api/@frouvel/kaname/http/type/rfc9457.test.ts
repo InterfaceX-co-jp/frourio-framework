@@ -4,11 +4,8 @@ import {
   ValidationError,
   UnauthorizedError,
   InternalServerError,
-} from '../app/error/CommonErrors';
-import {
-  ApiResponse,
-  PROBLEM_DETAILS_MEDIA_TYPE,
-} from '../app/http/ApiResponse';
+} from '../../error/CommonErrors';
+import { ApiResponse, PROBLEM_DETAILS_MEDIA_TYPE } from '../ApiResponse';
 
 // Access utils through ApiResponse facade
 const { createProblemDetails, errorToProblemDetails } = ApiResponse.utils;

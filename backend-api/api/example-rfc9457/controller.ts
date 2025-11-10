@@ -5,14 +5,16 @@
  */
 
 import { defineController } from './$relay';
-import { ApiResponse } from '$/app/http/ApiResponse';
+import {
+  ApiResponse,
+  ResponseBuilder,
+} from '$/@frouvel/kaname/http/ApiResponse';
 import {
   NotFoundError,
   ValidationError,
   UnauthorizedError,
-} from '$/app/error/CommonErrors';
+} from '$/@frouvel/kaname/error/CommonErrors';
 import { z } from 'zod';
-import { Validator } from '$/app/validation/Validator';
 
 export default defineController(() => ({
   // Example: Success response using ApiResponse facade
@@ -95,33 +97,35 @@ export default defineController(() => ({
     }
   },
 
-  // Example: Using Validator facade (Laravel-inspired)
-  // Clean, declarative validation with automatic RFC9457 error handling
-  patch: ({ body }) => {
-    // Validate and execute with business logic
-    return Validator.validateAndExecute(
-      body,
-      z.object({
-        name: z.string().min(1, '名前は必須です'),
-        description: z.string().optional(),
-        email: z.string().email('有効なメールアドレスを入力してください'),
-        age: z
-          .number()
-          .int('年齢は整数である必要があります')
-          .positive('年齢は正の数である必要があります')
-          .max(150, '年齢は150以下である必要があります'),
-        siteAreaSquareMeter: z
-          .union([
-            z.number().positive('敷地面積は正の数である必要があります'),
-            z.null(),
-          ])
-          .optional(),
-        minCapacity: z
-          .number()
-          .int()
-          .positive('最小定員は正の整数である必要があります'),
-      }),
-      (data) => {
+  // Example: Using ResponseBuilder with .handle() - Clean validation
+  // Separates schema validation from business logic
+  // Perfect for one-liner controller actions with complex validation
+  patch: ({ body }) =>
+    ResponseBuilder.create()
+      .withValidation(
+        body,
+        z.object({
+          name: z.string().min(1, '名前は必須です'),
+          description: z.string().optional(),
+          email: z.string().email('有効なメールアドレスを入力してください'),
+          age: z
+            .number()
+            .int('年齢は整数である必要があります')
+            .positive('年齢は正の数である必要があります')
+            .max(150, '年齢は150以下である必要があります'),
+          siteAreaSquareMeter: z
+            .union([
+              z.number().positive('敷地面積は正の数である必要があります'),
+              z.null(),
+            ])
+            .optional(),
+          minCapacity: z
+            .number()
+            .int()
+            .positive('最小定員は正の整数である必要があります'),
+        }),
+      )
+      .handle((data) => {
         // Business logic validation
         if (data.age < 18) {
           return ApiResponse.forbidden('18歳未満は登録できません', {
@@ -132,10 +136,52 @@ export default defineController(() => ({
 
         // Success response
         return ApiResponse.success({
-          message: 'データが正常に更新されました',
+          message: 'データが正常に更新されました (ResponseBuilder)',
           data,
         });
-      },
-    );
-  },
+      }),
+
+  // Example: Alternative ResponseBuilder syntax with .then() alias
+  // .then() is just an alias for .handle() - same functionality
+  // Use whichever reads better in your context
+  options: ({ body }) =>
+    ResponseBuilder.create()
+      .withValidation(
+        body,
+        z.object({
+          name: z.string().min(1, '名前は必須です'),
+          description: z.string().optional(),
+          email: z.string().email('有効なメールアドレスを入力してください'),
+          age: z
+            .number()
+            .int('年齢は整数である必要があります')
+            .positive('年齢は正の数である必要があります')
+            .max(150, '年齢は150以下である必要があります'),
+          siteAreaSquareMeter: z
+            .union([
+              z.number().positive('敷地面積は正の数である必要があります'),
+              z.null(),
+            ])
+            .optional(),
+          minCapacity: z
+            .number()
+            .int()
+            .positive('最小定員は正の整数である必要があります'),
+        }),
+      )
+      .then((data) => {
+        // Business logic validation
+        if (data.age < 18) {
+          return ApiResponse.forbidden('18歳未満は登録できません', {
+            minAge: 18,
+            providedAge: data.age,
+          });
+        }
+
+        // Success response
+        return ApiResponse.success({
+          message: 'データが正常に更新されました (.then() alias)',
+          data,
+        });
+      }),
 }));

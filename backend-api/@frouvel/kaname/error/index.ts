@@ -1,6 +1,6 @@
 /**
  * Error handling exports
- * 
+ *
  * This module provides easy access to all error-related functionality
  */
 
@@ -22,4 +22,7 @@ export {
 } from './CommonErrors';
 
 // Re-export RFC9457 types for convenience
-export type { ProblemDetails, CreateProblemDetailsOptions } from '../http/rfc9457.types';
+export type {
+  ProblemDetails,
+  CreateProblemDetailsOptions,
+} from '../http/type/nfc9457';
