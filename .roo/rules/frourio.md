@@ -7,90 +7,213 @@ The `f-f` includes a variety of composable functions and several best practices 
 - official doc: https://frourio.com/docs
 - repo: https://github.com/frouriojs/frourio
 
+## @frouvel/kaname - Core Framework Modules
+
+`@frouvel/kaname` is the core module collection for frourio-framework, inspired by Laravel's Illuminate namespace. It provides:
+
+- **HTTP Response Handling**: RFC9457-compliant error responses via [`ApiResponse`](backend-api/@frouvel/kaname/http/ApiResponse.ts) facade
+- **Response Builder**: Fluent API for validation and response creation via [`ResponseBuilder`](backend-api/@frouvel/kaname/http/ResponseBuilder.ts)
+- **Error Handling**: Structured error classes in [`@frouvel/kaname/error`](backend-api/@frouvel/kaname/error/)
+- **Validation**: Zod-based validation utilities via [`Validator`](backend-api/@frouvel/kaname/validation/Validator.ts)
+- **Pagination**: Pagination utilities in [`@frouvel/kaname/paginator`](backend-api/@frouvel/kaname/paginator/)
+
+### Key Modules
+
+#### HTTP Response Module (`@frouvel/kaname/http`)
+
+The [`ApiResponse`](backend-api/@frouvel/kaname/http/ApiResponse.ts:284) facade provides a unified API for creating HTTP responses:
+
+```ts
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+
+// Success response
+ApiResponse.success({ id: 1, name: 'John' });
+
+// Error responses
+ApiResponse.notFound('User not found', { userId: '123' });
+ApiResponse.badRequest('Invalid input', { field: 'email' });
+ApiResponse.unauthorized('Invalid token');
+ApiResponse.forbidden('Insufficient permissions');
+ApiResponse.conflict('User already exists');
+ApiResponse.internalServerError('Database error');
+
+// Method-specific error handlers
+ApiResponse.method.get(error);    // 404 default
+ApiResponse.method.post(error);   // 500 default
+ApiResponse.method.put(error);    // 500 default
+ApiResponse.method.patch(error);  // 403 default
+ApiResponse.method.delete(error); // 500 default
+```
+
+#### Response Builder (`@frouvel/kaname/http/ResponseBuilder`)
+
+The [`ResponseBuilder`](backend-api/@frouvel/kaname/http/ResponseBuilder.ts:28) provides a fluent API for validation and response creation:
+
+```ts
+import { ResponseBuilder } from '$/@frouvel/kaname/http/ApiResponse';
+import { z } from 'zod';
+
+// Pattern 1: .handle() - Full control over response
+ResponseBuilder.create()
+  .withValidation(body, userSchema)
+  .handle((data) => {
+    if (data.age < 18) {
+      return ApiResponse.forbidden('未成年は登録できません');
+    }
+    return ApiResponse.success(data);
+  });
+
+// Pattern 2: .then() - Alias for .handle()
+ResponseBuilder.create()
+  .withValidation(body, userSchema)
+  .then((data) => {
+    // Same as .handle()
+    return ApiResponse.success(data);
+  });
+
+// Pattern 3: .executeWithSuccess() - Auto-wraps in success response
+ResponseBuilder.create()
+  .withValidation(body, userSchema)
+  .executeWithSuccess((data) => {
+    if (data.age < 18) {
+      return ApiResponse.forbidden('未成年です');
+    }
+    // No need to return ApiResponse.success(), it's automatic
+    return { message: 'Success', data };
+  });
+```
+
+#### Error Classes (`@frouvel/kaname/error`)
+
+Structured error classes that automatically convert to RFC9457 Problem Details:
+
+```ts
+import { 
+  NotFoundError, 
+  ValidationError, 
+  UnauthorizedError 
+} from '$/@frouvel/kaname/error/CommonErrors';
+
+// Throw structured errors
+throw NotFoundError.create('User not found', { userId: '123' });
+throw ValidationError.create('Invalid input', { 
+  errors: [{ field: 'email', message: 'Invalid format' }] 
+});
+throw UnauthorizedError.create('Invalid token', { reason: 'Expired' });
+```
+
 ### `f-f` file structure
 
 #### backend-api/api
 
 - file based routing
-- controller just takes UseCase class and handles returned promise
+- controller uses UseCase classes and handles returned promises
+- **MUST** use [`ApiResponse`](backend-api/@frouvel/kaname/http/ApiResponse.ts:284) facade for all responses
+- **SHOULD** use [`ResponseBuilder`](backend-api/@frouvel/kaname/http/ResponseBuilder.ts:28) for validation-heavy endpoints
 
 ##### controller.ts
 
-- some typical controller.ts code given below.
+Modern controller patterns using `@frouvel/kaname`:
+
+**Pattern 1: Simple UseCase with error handling**
 
 ```ts
-import { returnPutError, returnSuccess } from "$/app/http/response";
-import { AssociateWithNyaaSukebeiTorrentDetailUseCase } from "$/domain/fanzaCrawledData/usecase/AssociateWithNyaaSukebeiTorrentDetail.usecase";
-import { defineController } from "./$relay";
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+import { FindUserUseCase } from '$/domain/user/usecase/FindUser.usecase';
+import { defineController } from './$relay';
 
 export default defineController(() => ({
-  get: () => ({ status: 200, body: "Hello" }),
-  put: ({ params, body }) =>
-    AssociateWithNyaaSukebeiTorrentDetailUseCase.create()
-      .handle({
-        fanzaContentId: params.fanzaContentId,
-        nyaaSukebeiCrawledTorrentDetailId: params.nyaaSukebeiCrawledDataId,
-        fanzaCrawledDataPayload: body.fanzaCrawledDataPayload,
-      })
-      .then(returnSuccess)
-      .catch(returnPutError),
+  get: ({ params }) =>
+    FindUserUseCase.create()
+      .handleById({ id: params.id })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get),
 }));
 ```
 
+**Pattern 2: With validation using ResponseBuilder**
+
 ```ts
-import { returnDeleteError, returnSuccess } from "$/app/http/response";
-import { DeleteFanzaCrawledDataAssociation } from "$/domain/torrentCrawledData/nyaa/usecase/DeleteFanzaCrawledDataAssociation.usecase";
-import { defineController } from "./$relay";
+import { ApiResponse, ResponseBuilder } from '$/@frouvel/kaname/http/ApiResponse';
+import { CreateUserUseCase } from '$/domain/user/usecase/CreateUser.usecase';
+import { defineController } from './$relay';
+import { z } from 'zod';
+
+const createUserSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  age: z.number().int().positive(),
+});
 
 export default defineController(() => ({
-  get: () => ({ status: 200, body: "" }),
-  delete: ({ params }) =>
-    DeleteFanzaCrawledDataAssociation.create()
-      .execute({
-        torrentId: params.torrentId,
-        fanzaCrawledDataId: params.fanzaCrawledDataId,
-      })
-      .then(returnSuccess)
-      .catch(returnDeleteError),
+  post: ({ body }) =>
+    ResponseBuilder.create()
+      .withValidation(body, createUserSchema)
+      .handle((data) => {
+        if (data.age < 18) {
+          return ApiResponse.forbidden('未成年は登録できません', {
+            minAge: 18,
+            providedAge: data.age,
+          });
+        }
+        
+        return CreateUserUseCase.create()
+          .handle(data)
+          .then(ApiResponse.success)
+          .catch(ApiResponse.method.post);
+      }),
 }));
 ```
 
+**Pattern 3: Multiple operations with pagination**
+
 ```ts
-import {
-  returnGetError,
-  returnPutError,
-  returnSuccess,
-} from "$/app/http/response";
-import { FindOrCreateUseCase } from "$/domain/torrentCrawledData/nyaa/usecase/FindOrCreate.usecase";
-import { PaginateNyaaSukebeiCrawledTorrentDetailUseCase } from "$/domain/torrentCrawledData/nyaa/usecase/PaginateNyaaSukebeiCrawledTorrentDetail.usecase";
-import { defineController } from "./$relay";
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+import { PaginateUsersUseCase } from '$/domain/user/usecase/PaginateUsers.usecase';
+import { CreateUserUseCase } from '$/domain/user/usecase/CreateUser.usecase';
+import { defineController } from './$relay';
 
 export default defineController(() => ({
   get: ({ query }) =>
-    PaginateNyaaSukebeiCrawledTorrentDetailUseCase.create()
+    PaginateUsersUseCase.create()
       .handle({
         page: query.page,
         limit: query.limit,
         search: query.searchValue ? { value: query.searchValue } : undefined,
       })
-      .then(returnSuccess)
-      .catch(returnGetError),
-  put: ({ body }) =>
-    FindOrCreateUseCase.create()
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get),
+      
+  post: ({ body }) =>
+    CreateUserUseCase.create()
       .handle({
-        category: body.category,
-        title: body.title,
-        link: body.link,
-        torrentURL: body.torrentURL,
-        magnetLink: body.magnetLink,
-        size: body.size,
-        uploadedAt: body.uploadedAt,
-        seeders: body.seeders,
-        leechers: body.leechers,
-        downloads: body.downloads,
+        name: body.name,
+        email: body.email,
+        age: body.age,
       })
-      .then(returnSuccess)
-      .catch(returnPutError),
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.post),
+}));
+```
+
+**Pattern 4: Direct response without UseCase**
+
+```ts
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+import { defineController } from './$relay';
+
+export default defineController(() => ({
+  get: () => ApiResponse.success({ message: 'Health check OK' }),
+  
+  delete: ({ params }) => {
+    // Direct business logic
+    if (!canDelete(params.id)) {
+      return ApiResponse.forbidden('Cannot delete this resource');
+    }
+    
+    deleteResource(params.id);
+    return ApiResponse.success({ deleted: true });
+  },
 }));
 ```
 
@@ -98,30 +221,33 @@ export default defineController(() => ({
 
 - this is aspida type definition basically
 - since it needs to pass type to frontend API client, it requires importing common types shared with frontend, import from `backend-api/commonTypesWithClient`. The `backend-api/commonTypesWithClient` is also imported as type in `frontend-web` and frontend can import mutual common type definitions.
+- **MUST** use [`ProblemDetails`](backend-api/commonTypesWithClient/ProblemDetails.types.ts) type for error responses
 - typical index.ts example given below
 
 ```ts
-import type { DefineMethods } from "aspida";
+import type { DefineMethods } from 'aspida';
+import type { ProblemDetails } from 'commonTypesWithClient';
 
 export type Methods = DefineMethods<{
   get: {
-    resBody: string;
+    resBody: string | ProblemDetails;
   };
   delete: {
-    resBody: void;
+    resBody: void | ProblemDetails;
   };
 }>;
 ```
 
 ```ts
-import { NyaaSukebeiCrawledTorrentDetailModelDto } from "commonTypesWithClient";
-import type { DefineMethods } from "aspida";
+import { UserModelDto } from 'commonTypesWithClient';
+import type { DefineMethods } from 'aspida';
+import type { ProblemDetails } from 'commonTypesWithClient';
 
 export type Methods = DefineMethods<{
   get: {
     resBody: {
-      crawledTorrentDetail: NyaaSukebeiCrawledTorrentDetailModelDto;
-    };
+      user: UserModelDto;
+    } | ProblemDetails;
   };
 }>;
 ```
@@ -129,9 +255,10 @@ export type Methods = DefineMethods<{
 ```ts
 import {
   PaginationMeta,
-  NyaaSukebeiCrawledTorrentDetailModelDto,
-} from "commonTypesWithClient";
-import type { DefineMethods } from "aspida";
+  UserModelDto,
+  ProblemDetails,
+} from 'commonTypesWithClient';
+import type { DefineMethods } from 'aspida';
 
 export type Methods = DefineMethods<{
   get: {
@@ -141,24 +268,17 @@ export type Methods = DefineMethods<{
       searchValue?: string;
     };
     resBody: {
-      data: NyaaSukebeiCrawledTorrentDetailModelDto[];
+      data: UserModelDto[];
       meta: PaginationMeta;
-    };
+    } | ProblemDetails;
   };
-  put: {
+  post: {
     reqBody: {
-      category: string;
-      title: string;
-      link: string;
-      torrentURL: string;
-      magnetLink: string;
-      size: string;
-      uploadedAt: string;
-      seeders: number;
-      leechers: number;
-      downloads: number;
+      name: string;
+      email: string;
+      age: number;
     };
-    resBody: NyaaSukebeiCrawledTorrentDetailModelDto;
+    resBody: UserModelDto | ProblemDetails;
   };
 }>;
 ```
@@ -178,7 +298,7 @@ export type Methods = DefineMethods<{
   - repository can import model/prisma client
   - model can't import aforementioned layers(usecase, service, repository)
 
-```ts
+```
 /home/mikana0918/Code/interfacex/torrent-watcher/backend-api/domain
 ├── admin
 │   ├── model
@@ -188,27 +308,17 @@ export type Methods = DefineMethods<{
 │   └── usecase
 │       ├── InitAdmin.usecase.ts
 │       └── SignInAdmin.usecase.ts
-├── ikenShoukai
+├── user
+│   ├── model
+│   │   └── User.model.ts
 │   ├── repository
-│   │   ├── IkenShoukai.repository.ts
-│   │   ├── IkenShoukaiCase.repository.ts
-│   │   └── IkenShoukaiCaseTorrentIpAddress.repository.ts
+│   │   └── User.repository.ts
 │   ├── service
-│   │   └── SubmitIkenShoukaiCase.service.ts
+│   │   └── ValidateUserAge.service.ts
 │   └── usecase
-│       ├── CreateIkenShoukaiCase.usecase.ts
-│       ├── ExportIpAddressesAsCsv.usecase.ts
-│       ├── PaginateIkenShoukaiCase.usecase.ts
-│       ├── PatchUpdateIkenShoukaiCase.usecase.ts
-│       ├── ShowIkenShoukaiCase.usecase.ts
-│       ├── SubmitIkenShoukaiCase.usecase.ts
-│       └── relatedTorrent
-│           ├── AddRelatedTorrent.usecase.ts
-│           ├── FindManyRelatedTorrent.usecase.ts
-│           └── RemoveRelatedTorrent.usecase.ts
-├── masterData
-│   └── models
-│       └── MasterDataModel.ts
+│       ├── CreateUser.usecase.ts
+│       ├── FindUser.usecase.ts
+│       └── PaginateUsers.usecase.ts
 ```
 
 ##### backend-api/domain/model
@@ -220,19 +330,25 @@ export type Methods = DefineMethods<{
 - example model look like this
 
 ```ts
-import { Prisma, User as PrismaUser } from "@prisma/client";
+import { Prisma, User as PrismaUser } from '@prisma/client';
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type UserModelDto = {
   id: number;
+  name: string;
+  email: string;
+  age: number;
   createdAt: string;
   updatedAt: string;
 };
 
 export type UserModelConstructorArgs = {
   id: number;
+  name: string;
+  email: string;
+  age: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -243,11 +359,17 @@ export type UserModelFromPrismaValueArgs = {
 
 export class UserModel {
   private readonly _id: number;
+  private readonly _name: string;
+  private readonly _email: string;
+  private readonly _age: number;
   private readonly _createdAt: Date;
   private readonly _updatedAt: Date;
 
   constructor(args: UserModelConstructorArgs) {
     this._id = args.id;
+    this._name = args.name;
+    this._email = args.email;
+    this._age = args.age;
     this._createdAt = args.createdAt;
     this._updatedAt = args.updatedAt;
   }
@@ -255,14 +377,20 @@ export class UserModel {
   static fromPrismaValue(args: UserModelFromPrismaValueArgs) {
     return new UserModel({
       id: args.self.id,
+      name: args.self.name,
+      email: args.self.email,
+      age: args.self.age,
       createdAt: args.self.createdAt,
       updatedAt: args.self.updatedAt,
     });
   }
 
-  toDto() {
+  toDto(): UserModelDto {
     return {
       id: this._id,
+      name: this._name,
+      email: this._email,
+      age: this._age,
       createdAt: this._createdAt?.toISOString() ?? null,
       updatedAt: this._updatedAt?.toISOString() ?? null,
     };
@@ -270,6 +398,18 @@ export class UserModel {
 
   get id() {
     return this._id;
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  get email() {
+    return this._email;
+  }
+
+  get age() {
+    return this._age;
   }
 
   get createdAt() {
@@ -291,204 +431,117 @@ export class UserModel {
   - let's write more code maybe, create many repository and try to make things work well
 - should export interface
 - constructor needs to be public since prisma transaction client might be passing
-- method name are preffered to have identifier suffixed
+- method name are preferred to have identifier suffixed
   - XXXXById
   - XXXXByUserId
 - requires consistent name for method between same directories
   - paginate, create, updateById, count...
 - don't return DTO here. just return Model
   - upper layers want to manipulate as Model not DTO
+- **MUST** use [`createPaginationMeta`](backend-api/@frouvel/kaname/paginator/createPaginationMeta.ts:3) from `@frouvel/kaname/paginator` for pagination
 
 ```ts
-import { PrismaBaseRepository } from "$/app/foundation/repository/PrismaBaseRepository";
-import { createPaginationMeta } from "$/app/paginator/createPaginationMeta";
-import { PaginationMeta } from "commonTypesWithClient";
-import { IkenShoukaiCaseModel } from "$/prisma/__generated__/models/IkenShoukaiCase.model";
-import { IkenShoukaiCaseStatus, PrismaClient } from "@prisma/client";
+import { createPaginationMeta } from '$/@frouvel/kaname/paginator/createPaginationMeta';
+import { PaginationMeta } from 'commonTypesWithClient';
+import { UserModel } from '$/prisma/__generated__/models/User.model';
+import { PrismaClient } from '@prisma/client';
 
-export interface IIkenShoukaiCaseRepository {
+export interface IUserRepository {
   create(args: {
-    title: string;
-    description?: string;
-  }): Promise<IkenShoukaiCaseModel>;
-  findById(args: { id: string }): Promise<IkenShoukaiCaseModel | null>;
+    name: string;
+    email: string;
+    age: number;
+  }): Promise<UserModel>;
+  findById(args: { id: number }): Promise<UserModel | null>;
   updateById(args: {
-    id: string;
+    id: number;
     payload: {
-      title?: string;
-      description?: string;
-      status?: IkenShoukaiCaseStatus;
+      name?: string;
+      email?: string;
+      age?: number;
     };
-  }): Promise<IkenShoukaiCaseModel>;
+  }): Promise<UserModel>;
   paginate(args: {
     limit: number;
     page: number;
-  }): Promise<{ data: IkenShoukaiCaseModel[]; meta: PaginationMeta }>;
-  addCrawledTorrentDetailsById(args: {
-    id: string;
-    crawledTorrentDetailIds: string[];
-  }): Promise<void>;
-  removeCrawledTorrentDetailsById(args: {
-    id: string;
-    crawledTorrentDetailIds: string[];
-  }): Promise<void>;
+    search?: { value: string };
+  }): Promise<{ data: UserModel[]; meta: PaginationMeta }>;
   count(): Promise<number>;
-  findAllForEnqueueDownloadingTorrents(): Promise<IkenShoukaiCaseModel[]>;
 }
 
-export class IkenShoukaiCaseRepository
-  extends PrismaBaseRepository
-  implements IIkenShoukaiCaseRepository
-{
-  constructor(args: { prisma: PrismaClient }) {
-    super(args);
-  }
+export class UserRepository implements IUserRepository {
+  constructor(private readonly _prisma: PrismaClient) {}
 
-  async create(args: { title: string; description?: string }) {
-    const data = await this._prisma.ikenShoukaiCase.create({
+  async create(args: { name: string; email: string; age: number }) {
+    const data = await this._prisma.user.create({
       data: {
-        title: args.title,
-        description: args.description,
-        status: IkenShoukaiCaseStatus.BEFORE_APPLICATIION_SENT, // デフォルト
+        name: args.name,
+        email: args.email,
+        age: args.age,
       },
     });
 
-    return IkenShoukaiCaseModel.fromPrismaValue({
-      self: data,
-      ikenShoukaiCaseNyaaSukebeiCrawledTorrentDetail: [],
-      ikenShoukaiCaseTorrentIpAddress: [],
-      kaijiSeikyuCase: [],
-    });
+    return UserModel.fromPrismaValue({ self: data });
   }
 
-  async findById(args: { id: string }) {
-    const data = await this._prisma.ikenShoukaiCase.findUnique({
+  async findById(args: { id: number }) {
+    const data = await this._prisma.user.findUnique({
       where: { id: args.id },
-      include: {
-        IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail: true,
-        IkenShoukaiCaseTorrentIpAddress: true,
-        kaijiSeikyuCase: true,
-      },
     });
 
     if (!data) return null;
 
-    return IkenShoukaiCaseModel.fromPrismaValue({
-      self: data,
-      ikenShoukaiCaseNyaaSukebeiCrawledTorrentDetail:
-        data.IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail || [],
-      ikenShoukaiCaseTorrentIpAddress:
-        data.IkenShoukaiCaseTorrentIpAddress || [],
-      kaijiSeikyuCase: data.kaijiSeikyuCase || [],
-    });
+    return UserModel.fromPrismaValue({ self: data });
   }
 
   async updateById(args: {
-    id: string;
+    id: number;
     payload: {
-      title?: string;
-      description?: string;
-      status?: IkenShoukaiCaseStatus;
+      name?: string;
+      email?: string;
+      age?: number;
     };
   }) {
-    const data = await this._prisma.ikenShoukaiCase.update({
+    const data = await this._prisma.user.update({
       where: { id: args.id },
       data: args.payload,
-      include: {
-        IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail: true,
-        kaijiSeikyuCase: true,
-      },
     });
 
-    return IkenShoukaiCaseModel.fromPrismaValue({
-      self: data,
-      ikenShoukaiCaseNyaaSukebeiCrawledTorrentDetail:
-        data.IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail || [],
-      ikenShoukaiCaseTorrentIpAddress: [],
-      kaijiSeikyuCase: data.kaijiSeikyuCase || [],
-    });
+    return UserModel.fromPrismaValue({ self: data });
   }
 
-  async paginate(args: { limit: number; page: number }) {
-    const data = await this._prisma.ikenShoukaiCase.findMany({
+  async paginate(args: {
+    limit: number;
+    page: number;
+    search?: { value: string };
+  }) {
+    const where = args.search
+      ? {
+          OR: [
+            { name: { contains: args.search.value } },
+            { email: { contains: args.search.value } },
+          ],
+        }
+      : {};
+
+    const data = await this._prisma.user.findMany({
+      where,
       take: args.limit,
       skip: args.limit * (args.page - 1),
-      orderBy: { createdAt: "desc" },
-      include: {
-        IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail: true,
-        IkenShoukaiCaseTorrentIpAddress: true,
-        kaijiSeikyuCase: true,
-      },
+      orderBy: { createdAt: 'desc' },
     });
 
     return {
-      data: data.map((d) =>
-        IkenShoukaiCaseModel.fromPrismaValue({
-          self: d,
-          ikenShoukaiCaseNyaaSukebeiCrawledTorrentDetail:
-            d.IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail || [],
-          ikenShoukaiCaseTorrentIpAddress:
-            d.IkenShoukaiCaseTorrentIpAddress || [],
-          kaijiSeikyuCase: d.kaijiSeikyuCase || [],
-        })
-      ),
+      data: data.map((d) => UserModel.fromPrismaValue({ self: d })),
       meta: createPaginationMeta({
-        totalCount: await this._prisma.ikenShoukaiCase.count(),
+        totalCount: await this._prisma.user.count({ where }),
         perPage: args.limit,
       }),
     };
   }
 
-  async addCrawledTorrentDetailsById(args: {
-    id: string;
-    crawledTorrentDetailIds: string[];
-  }) {
-    await this._prisma.ikenShoukaiCase_NyaaSukebeiCrawledTorrentDetail.createMany(
-      {
-        data: args.crawledTorrentDetailIds.map((id) => ({
-          ikenShoukaiCaseId: args.id,
-          nyaaSukebeiCrawledTorrentDetailId: id,
-        })),
-      }
-    );
-  }
-
-  async removeCrawledTorrentDetailsById(args: {
-    id: string;
-    crawledTorrentDetailIds: string[];
-  }) {
-    await this._prisma.ikenShoukaiCase_NyaaSukebeiCrawledTorrentDetail.deleteMany(
-      {
-        where: {
-          ikenShoukaiCaseId: args.id,
-          nyaaSukebeiCrawledTorrentDetailId: {
-            in: args.crawledTorrentDetailIds,
-          },
-        },
-      }
-    );
-  }
-
   async count() {
-    return this._prisma.ikenShoukaiCase.count();
-  }
-
-  async findAllForEnqueueDownloadingTorrents() {
-    const data = await this._prisma.ikenShoukaiCase.findMany({
-      include: {
-        IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail: true,
-      },
-    });
-
-    return data.map((el) =>
-      IkenShoukaiCaseModel.fromPrismaValue({
-        self: el,
-        ikenShoukaiCaseNyaaSukebeiCrawledTorrentDetail:
-          el.IkenShoukaiCase_NyaaSukebeiCrawledTorrentDetail,
-        ikenShoukaiCaseTorrentIpAddress: [],
-        kaijiSeikyuCase: [],
-      })
-    );
+    return this._prisma.user.count();
   }
 }
 ```
@@ -504,131 +557,154 @@ export class IkenShoukaiCaseRepository
   - setup execution public method
     - sometimes several method can be used
       - handleById(args: {id: string})
-      - handleByUserid(args: {userId: string})
+      - handleByUserId(args: {userId: string})
 
 ```ts
-import {
-  IIkenShoukaiCaseRepository,
-  IkenShoukaiCaseRepository,
-} from "../repository/IkenShoukaiCase.repository";
-import { getPrismaClient } from "$/service/getPrismaClient";
-// more imports...
+import { IUserRepository, UserRepository } from '../repository/User.repository';
+import { getPrismaClient } from '$/service/getPrismaClient';
 
-export interface ISubmitIkenShoukaiCaseService {
-  handleByCaseId: (args: { caseId: string }) => Promise<void>;
+export interface IValidateUserAgeService {
+  handleByAge: (args: { age: number }) => Promise<boolean>;
 }
 
-export class SubmitIkenShoukaiCaseService
-  implements ISubmitIkenShoukaiCaseService
-{
-  private readonly _ikenShoukaiCaseRepository: IIkenShoukaiCaseRepository;
-  private readonly _ikenShoukaiRepository: IIkenShoukaiRepository;
-  private readonly _openSearchMonitoredIPAddressesGateway: IOpenSearchMonitoredIPAddressesGateway;
-  private readonly _ikenShoukaiCaseTorrentIpAddressRepository: IIkenShoukaiCaseTorrentIpAddressRepository;
-  private readonly _maxmindGateway: IMaxmindGateway;
+export class ValidateUserAgeService implements IValidateUserAgeService {
+  private readonly _userRepository: IUserRepository;
+  private readonly _minAge: number = 18;
 
   private constructor(args: {
-    ikenShoukaiCaseRepository: IIkenShoukaiCaseRepository;
-    ikenShoukaiRepository: IIkenShoukaiRepository;
-    openSearchMonitoredIPAddressesGateway: IOpenSearchMonitoredIPAddressesGateway;
-    ikenShoukaiCaseTorrentIpAddressRepository: IIkenShoukaiCaseTorrentIpAddressRepository;
-    maxMindGateway: IMaxmindGateway;
+    userRepository: IUserRepository;
+    minAge?: number;
   }) {
-    this._ikenShoukaiCaseRepository = args.ikenShoukaiCaseRepository;
-    this._ikenShoukaiRepository = args.ikenShoukaiRepository;
-    this._openSearchMonitoredIPAddressesGateway =
-      args.openSearchMonitoredIPAddressesGateway;
-    this._ikenShoukaiCaseTorrentIpAddressRepository =
-      args.ikenShoukaiCaseTorrentIpAddressRepository;
-    this._maxmindGateway = args.maxMindGateway;
+    this._userRepository = args.userRepository;
+    if (args.minAge !== undefined) {
+      this._minAge = args.minAge;
+    }
   }
 
-  static create() {
-    return new SubmitIkenShoukaiCaseService({
-      ikenShoukaiCaseRepository: new IkenShoukaiCaseRepository({
-        prisma: getPrismaClient(),
-      }),
-      ikenShoukaiRepository: new IkenShoukaiRepository({
-        prisma: getPrismaClient(),
-      }),
-      openSearchMonitoredIPAddressesGateway:
-        OpenSearchMonitoredIPAddressesGateway.create(),
-      ikenShoukaiCaseTorrentIpAddressRepository:
-        new IkenShoukaiCaseTorrentIpAddressRepository({
-          prisma: getPrismaClient(),
-        }),
-      maxMindGateway: MaxmindGateway.create(),
+  static create(args?: { minAge?: number }) {
+    return new ValidateUserAgeService({
+      userRepository: new UserRepository(getPrismaClient()),
+      minAge: args?.minAge,
     });
   }
 
-  async handleByCaseId(args: { caseId: string }) {
-    await this._ikenShoukaiCaseRepository.updateById({
-      id: args.caseId,
-      payload: {
-        status: "CASE_SUBMITTED",
-      },
-    });
-
-    // TODO: implement continues...
+  async handleByAge(args: { age: number }) {
+    return args.age >= this._minAge;
   }
 }
 ```
 
 ##### backend-api/domain/usecase
 
-- mostly looks similar to usecase however it is the core of our backend business logic
+- mostly looks similar to service however it is the core of our backend business logic
 - all the logic flows are here together
-- unlike service, it won't export it's interface
+- unlike service, it won't export its interface
   - unlike service, it will be just used in api directly thus don't need interface definition
+- **SHOULD** throw structured errors from `@frouvel/kaname/error` instead of generic Error
+- follows same class coding rules as service
 
 ```ts
-import { ISNSService, SNSService } from "$/app/providers/aws/sns/SNS.service";
-import { snsConfig } from "$/app/providers/aws/sns/config";
-import { getPrismaClient } from "$/service/getPrismaClient";
-import {
-  IIkenShoukaiCaseRepository,
-  IkenShoukaiCaseRepository,
-} from "../repository/IkenShoukaiCase.repository";
+import { NotFoundError } from '$/@frouvel/kaname/error/CommonErrors';
+import { getPrismaClient } from '$/service/getPrismaClient';
+import { IUserRepository, UserRepository } from '../repository/User.repository';
 
-export class SubmitIkenShoukaiCaseUseCase {
-  private readonly _snsService: ISNSService;
-  private readonly _ikenShoukaiCaseRepository: IIkenShoukaiCaseRepository;
+export class FindUserUseCase {
+  private readonly _userRepository: IUserRepository;
 
-  private constructor(args: {
-    snsService: ISNSService;
-    ikenShoukaiCaseRepository: IIkenShoukaiCaseRepository;
-  }) {
-    this._snsService = args.snsService;
-    this._ikenShoukaiCaseRepository = args.ikenShoukaiCaseRepository;
+  private constructor(args: { userRepository: IUserRepository }) {
+    this._userRepository = args.userRepository;
   }
 
   static create() {
-    return new SubmitIkenShoukaiCaseUseCase({
-      snsService: SNSService,
-      ikenShoukaiCaseRepository: new IkenShoukaiCaseRepository({
-        prisma: getPrismaClient(),
-      }),
+    return new FindUserUseCase({
+      userRepository: new UserRepository(getPrismaClient()),
     });
   }
 
-  async handleByCaseId(args: { caseId: string }) {
-    await this._ikenShoukaiCaseRepository.updateById({
-      id: args.caseId,
-      payload: {
-        status: "CASE_SUBMISSION_PROCESSING",
-      },
-    });
+  async handleById(args: { id: number }) {
+    const user = await this._userRepository.findById({ id: args.id });
 
-    this._snsService.publish({
-      topicArn: snsConfig.topics.backendWorker.submitIkenShoukaiCase.arn,
-      message:
-        snsConfig.topics.backendWorker.submitIkenShoukaiCase.defineMessagePayload(
-          {
-            caseId: args.caseId,
-            taskType: "SUBMIT_IKEN_SHOUKAI_CASE",
-          }
-        ),
-    });
+    if (!user) {
+      throw NotFoundError.create(`User with ID ${args.id} not found`, {
+        userId: args.id,
+      });
+    }
+
+    return user.toDto();
   }
 }
 ```
+
+```ts
+import { ValidationError } from '$/@frouvel/kaname/error/CommonErrors';
+import { getPrismaClient } from '$/service/getPrismaClient';
+import { IUserRepository, UserRepository } from '../repository/User.repository';
+import { IValidateUserAgeService, ValidateUserAgeService } from '../service/ValidateUserAge.service';
+
+export class CreateUserUseCase {
+  private readonly _userRepository: IUserRepository;
+  private readonly _validateUserAgeService: IValidateUserAgeService;
+
+  private constructor(args: {
+    userRepository: IUserRepository;
+    validateUserAgeService: IValidateUserAgeService;
+  }) {
+    this._userRepository = args.userRepository;
+    this._validateUserAgeService = args.validateUserAgeService;
+  }
+
+  static create() {
+    return new CreateUserUseCase({
+      userRepository: new UserRepository(getPrismaClient()),
+      validateUserAgeService: ValidateUserAgeService.create(),
+    });
+  }
+
+  async handle(args: { name: string; email: string; age: number }) {
+    // Business validation using service
+    const isValidAge = await this._validateUserAgeService.handleByAge({
+      age: args.age,
+    });
+
+    if (!isValidAge) {
+      throw ValidationError.create('User age is below minimum requirement', {
+        minAge: 18,
+        providedAge: args.age,
+      });
+    }
+
+    const user = await this._userRepository.create({
+      name: args.name,
+      email: args.email,
+      age: args.age,
+    });
+
+    return user.toDto();
+  }
+}
+```
+
+## Best Practices Summary
+
+### Response Handling
+- **MUST** use [`ApiResponse`](backend-api/@frouvel/kaname/http/ApiResponse.ts:284) facade for all controller responses
+- **SHOULD** use [`ResponseBuilder`](backend-api/@frouvel/kaname/http/ResponseBuilder.ts:28) for endpoints with complex validation
+- **MUST** use method-specific error handlers: `ApiResponse.method.get()`, `ApiResponse.method.post()`, etc.
+
+### Error Handling
+- **SHOULD** throw structured errors from [`@frouvel/kaname/error`](backend-api/@frouvel/kaname/error/) in UseCases
+- **MUST** include relevant context in error details
+- All errors automatically convert to RFC9457 Problem Details format
+
+### Type Definitions
+- **MUST** include [`ProblemDetails`](backend-api/commonTypesWithClient/ProblemDetails.types.ts) union type in all response types
+- **MUST** import shared types from `commonTypesWithClient`
+
+### Pagination
+- **MUST** use [`createPaginationMeta`](backend-api/@frouvel/kaname/paginator/createPaginationMeta.ts:3) from `@frouvel/kaname/paginator`
+- **MUST** return `{ data: T[]; meta: PaginationMeta }` structure
+
+### Class Patterns
+- Private fields: `private readonly _fieldName`
+- Private constructor with static `create()` factory method
+- Public execution methods: `handle()`, `handleById()`, `handleByUserId()`, etc.
