@@ -128,9 +128,7 @@ export class ResponseBuilder<T = unknown> {
    */
   executeWithSuccess<R>(
     handler: (data: T) => R | ReturnType<ApiResponseFunctions>,
-  ):
-    | ReturnType<typeof ApiResponse.success>
-    | ReturnType<ApiResponseFunctions> {
+  ): ReturnType<typeof ApiResponse.success> | ReturnType<ApiResponseFunctions> {
     return this.handle((data) => {
       const result = handler(data);
 

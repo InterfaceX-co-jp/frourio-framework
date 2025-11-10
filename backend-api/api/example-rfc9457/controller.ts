@@ -5,12 +5,15 @@
  */
 
 import { defineController } from './$relay';
-import { ApiResponse, ResponseBuilder } from '$/app/http/ApiResponse';
+import {
+  ApiResponse,
+  ResponseBuilder,
+} from '$/@frouvel/kaname/http/ApiResponse';
 import {
   NotFoundError,
   ValidationError,
   UnauthorizedError,
-} from '$/app/error/CommonErrors';
+} from '$/@frouvel/kaname/error/CommonErrors';
 import { z } from 'zod';
 
 export default defineController(() => ({

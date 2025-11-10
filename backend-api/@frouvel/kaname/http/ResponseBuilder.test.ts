@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ResponseBuilder } from '$/app/http/ResponseBuilder';
-import { ApiResponse } from '$/app/http/ApiResponse';
+import { ResponseBuilder } from '$/@frouvel/kaname/http/ResponseBuilder';
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
 import { z } from 'zod';
 
 describe('ResponseBuilder', () => {

@@ -1,5 +1,5 @@
-import type { ProblemDetails } from '../http/rfc9457.types';
-import { DEFAULT_PROBLEM_TYPE } from '../http/rfc9457.types';
+import { DEFAULT_PROBLEM_TYPE } from '$/commonTypesWithClient/ProblemDetails.types';
+import type { ProblemDetails } from '.';
 
 export enum ErrorCode {
   // General errors (1000-1999)

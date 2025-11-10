@@ -11,8 +11,8 @@
 import type {
   ProblemDetails,
   CreateProblemDetailsOptions,
-} from './rfc9457.types';
-import { DEFAULT_PROBLEM_TYPE } from './rfc9457.types';
+} from './type/nfc9457';
+import { DEFAULT_PROBLEM_TYPE } from './type/nfc9457';
 import { AbstractFrourioFrameworkError } from '../error/FrourioFrameworkError';
 
 // ============================================================================
@@ -372,8 +372,8 @@ export { ResponseBuilder } from './ResponseBuilder';
 export type {
   ProblemDetails,
   CreateProblemDetailsOptions,
-} from './rfc9457.types';
+} from './type/nfc9457';
 export {
   PROBLEM_DETAILS_MEDIA_TYPE,
   DEFAULT_PROBLEM_TYPE,
-} from './rfc9457.types';
+} from './type/nfc9457';

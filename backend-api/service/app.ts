@@ -8,8 +8,8 @@ import type { FastifyServerFactory } from 'fastify';
 import Fastify from 'fastify';
 import { NODE_ENV } from '$/env';
 import { CORS_ORIGINS } from '$/config/cors';
-import { AbstractFrourioFrameworkError } from '$/app/error/FrourioFrameworkError';
-import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/app/http/ApiResponse';
+import { AbstractFrourioFrameworkError } from '$/@frouvel/kaname/error/FrourioFrameworkError';
+import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/@frouvel/kaname/http/ApiResponse';
 
 config();
 
