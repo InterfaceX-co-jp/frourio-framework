@@ -17,3 +17,13 @@ export {
   isCursorPaginatorResponse,
 } from './Paginator';
 export type { PaginationMeta } from './types';
+
+// Prisma Extension
+export { pagination, createPaginator } from './prisma';
+export type {
+  PaginationConfig,
+  PagesConfig,
+  CursorConfig,
+  WithPagesArgs,
+  WithCursorArgs,
+} from './prisma';

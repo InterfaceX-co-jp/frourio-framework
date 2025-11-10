@@ -621,3 +621,529 @@ return LengthAwarePaginator.create({
 
 - [RFC9457 Error Handling](../../../docs/RFC9457_ERROR_HANDLING.md)
 - [Response Builder](../../../docs/RESPONSE_BUILDER.md)
+# Paginator
+
+Laravel-style pagination utilities for frourio-framework with unified facade interface and Prisma extension.
+
+## Quick Start
+
+### Option 1: Using Prisma Extension (Recommended)
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+import { pagination } from '$/@frouvel/kaname/paginator';
+
+// Extend Prisma Client with pagination
+const prisma = new PrismaClient().$extends(
+  pagination({
+    pages: {
+      limit: 10,
+      includePageCount: true,
+    },
+    cursor: {
+      limit: 10,
+    },
+  })
+);
+
+// Use anywhere in your app
+const users = await prisma.user.withPages({
+  page: 1,
+  limit: 20,
+  where: { status: 'active' },
+  orderBy: { createdAt: 'desc' },
+});
+
+// Transform and return
+return users.map(u => UserModel.fromPrismaValue({ self: u }).toDto()).toResponse();
+```
+
+### Option 2: Using Paginator Facade
+
+```typescript
+import { Paginator } from '$/@frouvel/kaname/paginator';
+
+// Length-aware pagination (offset-based)
+const lengthAware = Paginator.lengthAware({
+  data: users,
+  total: 1000,
+  perPage: 10,
+  currentPage: 1,
+});
+
+// Cursor pagination (for large datasets)
+const cursor = Paginator.cursor({
+  data: users,
+  perPage: 10,
+  cursorColumn: 'id',
+});
+```
+
+## Prisma Extension
+
+### Basic Setup
+
+```typescript
+// backend-api/service/getPrismaClient.ts
+import { PrismaClient } from '@prisma/client';
+import { pagination } from '$/@frouvel/kaname/paginator';
+
+let prisma: ReturnType<typeof createPrismaClient>;
+
+function createPrismaClient() {
+  return new PrismaClient().$extends(
+    pagination({
+      pages: {
+        limit: 10,
+        includePageCount: true,
+      },
+      cursor: {
+        limit: 10,
+      },
+    })
+  );
+}
+
+export const getPrismaClient = () => {
+  if (!prisma) {
+    prisma = createPrismaClient();
+  }
+  return prisma;
+};
+```
+
+### Using in Repository
+
+```typescript
+import { getPrismaClient } from '$/service/getPrismaClient';
+import { UserModel } from '$/prisma/__generated__/models/User.model';
+
+export class UserRepository {
+  private readonly _prisma = getPrismaClient();
+
+  async paginate(args: {
+    page: number;
+    limit: number;
+    search?: { value: string };
+  }) {
+    const where = args.search
+      ? {
+          OR: [
+            { name: { contains: args.search.value } },
+            { email: { contains: args.search.value } },
+          ],
+        }
+      : {};
+
+    // Use Prisma extension - returns LengthAwarePaginator
+    const paginator = await this._prisma.user.withPages({
+      page: args.page,
+      limit: args.limit,
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Transform to models
+    return paginator.map(user => UserModel.fromPrismaValue({ self: user }));
+  }
+
+  async paginateWithCursor(args: {
+    limit: number;
+    cursor?: string;
+  }) {
+    // Use Prisma extension - returns CursorPaginator
+    const paginator = await this._prisma.user.withCursor({
+      cursor: args.cursor,
+      limit: args.limit,
+      cursorColumn: 'id',
+      orderBy: { id: 'desc' },
+    });
+
+    // Transform to models
+    return paginator.map(user => UserModel.fromPrismaValue({ self: user }));
+  }
+}
+```
+
+### Configuration Options
+
+#### Global Configuration
+
+```typescript
+import { pagination } from '$/@frouvel/kaname/paginator';
+
+const prisma = new PrismaClient().$extends(
+  pagination({
+    pages: {
+      limit: 25,              // Default items per page
+      includePageCount: true, // Include total count by default
+    },
+    cursor: {
+      limit: 50,              // Default items per page
+      getCursor: (record) => record.id,  // Custom cursor extraction
+      parseCursor: (cursor) => parseInt(cursor), // Custom cursor parsing
+    },
+  })
+);
+```
+
+#### Per-Model Configuration
+
+```typescript
+import { createPaginator } from '$/@frouvel/kaname/paginator';
+
+const userPaginator = createPaginator({
+  pages: { limit: 20 },
+  cursor: { limit: 30 },
+});
+
+const postPaginator = createPaginator({
+  pages: { limit: 10 },
+  cursor: { limit: 15 },
+});
+
+const prisma = new PrismaClient().$extends({
+  model: {
+    user: { paginate: userPaginator },
+    post: { paginate: postPaginator },
+  },
+});
+```
+
+### Available Methods
+
+#### `withPages()` - Offset-based Pagination
+
+```typescript
+const result = await prisma.user.withPages({
+  page: 1,              // Page number (1-based)
+  limit: 20,            // Items per page
+  includePageCount: true, // Include total count (optional)
+  
+  // Standard Prisma query options
+  where: { status: 'active' },
+  orderBy: { createdAt: 'desc' },
+  include: { posts: true },
+  select: { id: true, name: true },
+});
+
+// Returns LengthAwarePaginator
+console.log(result.total);       // Total items
+console.log(result.currentPage); // Current page
+console.log(result.lastPage);    // Total pages
+```
+
+#### `withCursor()` - Cursor-based Pagination
+
+```typescript
+const result = await prisma.user.withCursor({
+  cursor: encodedCursor, // Cursor string (optional)
+  limit: 20,             // Items per page
+  cursorColumn: 'id',    // Column to use as cursor
+  path: '/api/users',    // Base path for links (optional)
+  
+  // Standard Prisma query options
+  where: { status: 'active' },
+  orderBy: { id: 'desc' },
+  include: { posts: true },
+});
+
+// Returns CursorPaginator
+console.log(result.nextCursor);  // Cursor for next page
+console.log(result.hasMorePages()); // Boolean
+```
+
+### Type Definitions for API
+
+```typescript
+// backend-api/api/users/index.ts
+import type { DefineMethods } from 'aspida';
+import type { LengthAwarePaginatorResponse } from '$/@frouvel/kaname/paginator';
+import type { UserModelDto, ProblemDetails } from 'commonTypesWithClient';
+
+export type Methods = DefineMethods<{
+  get: {
+    query: {
+      page: number;
+      limit: number;
+      searchValue?: string;
+    };
+    resBody: LengthAwarePaginatorResponse<UserModelDto> | ProblemDetails;
+  };
+}>;
+```
+
+### Complete Example
+
+```typescript
+// Repository
+export class UserRepository {
+  private readonly _prisma = getPrismaClient();
+
+  async paginate(args: {
+    page: number;
+    limit: number;
+    search?: { value: string };
+  }) {
+    const where = args.search
+      ? {
+          OR: [
+            { name: { contains: args.search.value } },
+            { email: { contains: args.search.value } },
+          ],
+        }
+      : {};
+
+    const paginator = await this._prisma.user.withPages({
+      page: args.page,
+      limit: args.limit,
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return paginator.map(user => UserModel.fromPrismaValue({ self: user }));
+  }
+}
+
+// UseCase
+export class PaginateUsersUseCase {
+  private readonly _userRepository: IUserRepository;
+
+  static create() {
+    return new PaginateUsersUseCase({
+      userRepository: new UserRepository(),
+    });
+  }
+
+  async handle(args: { page: number; limit: number; search?: { value: string } }) {
+    const paginator = await this._userRepository.paginate(args);
+    
+    // Transform to DTOs and return response
+    return paginator.map(user => user.toDto()).toResponse();
+  }
+}
+
+// Controller
+export default defineController(() => ({
+  get: ({ query }) =>
+    PaginateUsersUseCase.create()
+      .handle({
+        page: query.page,
+        limit: query.limit,
+        search: query.searchValue ? { value: query.searchValue } : undefined,
+      })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get),
+}));
+```
+
+---
+
+## Prisma Extension Usage Examples
+
+### Real-World Example: User Repository
+
+```typescript
+// backend-api/domain/user/repository/User.repository.ts
+import { getPrismaClient } from '$/service/getPrismaClient';
+import { UserModel } from '$/prisma/__generated__/models/User.model';
+
+export interface IUserRepository {
+  paginate(args: {
+    page: number;
+    limit: number;
+    search?: { value: string };
+  }): Promise<ReturnType<typeof import('$/@frouvel/kaname/paginator').Paginator.lengthAware<UserModel>>>;
+  
+  paginateWithCursor(args: {
+    limit: number;
+    cursor?: string;
+  }): Promise<ReturnType<typeof import('$/@frouvel/kaname/paginator').Paginator.cursor<UserModel>>>;
+}
+
+export class UserRepository implements IUserRepository {
+  private readonly _prisma = getPrismaClient();
+
+  // Offset-based pagination
+  async paginate(args: {
+    page: number;
+    limit: number;
+    search?: { value: string };
+  }) {
+    const where = args.search
+      ? {
+          OR: [
+            { name: { contains: args.search.value } },
+            { email: { contains: args.search.value } },
+          ],
+        }
+      : {};
+
+    // Uses Prisma extension - automatically returns LengthAwarePaginator
+    const paginator = await this._prisma.user.withPages({
+      page: args.page,
+      limit: args.limit,
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Transform Prisma objects to domain models
+    return paginator.map(user => UserModel.fromPrismaValue({ self: user }));
+  }
+
+  // Cursor-based pagination
+  async paginateWithCursor(args: {
+    limit: number;
+    cursor?: string;
+  }) {
+    const paginator = await this._prisma.user.withCursor({
+      cursor: args.cursor,
+      limit: args.limit,
+      cursorColumn: 'id',
+      orderBy: { id: 'desc' },
+    });
+
+    return paginator.map(user => UserModel.fromPrismaValue({ self: user }));
+  }
+}
+```
+
+### UseCase Layer
+
+```typescript
+// backend-api/domain/user/usecase/PaginateUsers.usecase.ts
+import { UserRepository, IUserRepository } from '../repository/User.repository';
+import { getPrismaClient } from '$/service/getPrismaClient';
+
+export class PaginateUsersUseCase {
+  private readonly _userRepository: IUserRepository;
+
+  private constructor(args: { userRepository: IUserRepository }) {
+    this._userRepository = args.userRepository;
+  }
+
+  static create() {
+    return new PaginateUsersUseCase({
+      userRepository: new UserRepository(),
+    });
+  }
+
+  async handle(args: {
+    page: number;
+    limit: number;
+    search?: { value: string };
+  }) {
+    const paginator = await this._userRepository.paginate(args);
+    
+    // Transform to DTOs for API response
+    return paginator.map(user => user.toDto()).toResponse();
+  }
+}
+```
+
+### Controller Layer
+
+```typescript
+// backend-api/api/users/index.ts
+import type { DefineMethods } from 'aspida';
+import type { LengthAwarePaginatorResponse } from '$/@frouvel/kaname/paginator';
+import type { UserModelDto, ProblemDetails } from 'commonTypesWithClient';
+
+export type Methods = DefineMethods<{
+  get: {
+    query: {
+      page: number;
+      limit: number;
+      searchValue?: string;
+    };
+    resBody: LengthAwarePaginatorResponse<UserModelDto> | ProblemDetails;
+  };
+}>;
+```
+
+```typescript
+// backend-api/api/users/controller.ts
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+import { PaginateUsersUseCase } from '$/domain/user/usecase/PaginateUsers.usecase';
+import { defineController } from './$relay';
+
+export default defineController(() => ({
+  get: ({ query }) =>
+    PaginateUsersUseCase.create()
+      .handle({
+        page: query.page,
+        limit: query.limit,
+        search: query.searchValue ? { value: query.searchValue } : undefined,
+      })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get),
+}));
+```
+
+### Frontend Usage
+
+```typescript
+// frontend-web/src/pages/users/index.tsx
+import { useState, useEffect } from 'react';
+import { apiClient } from '@/utils/apiClient';
+import { isApiSuccess } from 'commonTypesWithClient';
+
+export default function UsersPage() {
+  const [users, setUsers] = useState<UserModelDto[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      const result = await apiClient.users.$get({
+        query: { page, limit: 20 }
+      });
+
+      if (isApiSuccess(result)) {
+        setUsers(result.data);
+        setMeta(result.meta);
+      }
+      setLoading(false);
+    };
+
+    fetchUsers();
+  }, [page]);
+
+  return (
+    <div>
+      <h1>Users ({meta?.total || 0})</h1>
+      
+      <ul>
+        {users.map(user => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+
+      {meta && (
+        <div>
+          <p>
+            Showing {meta.from}-{meta.to} of {meta.total}
+          </p>
+          <button 
+            disabled={page === 1} 
+            onClick={() => setPage(p => p - 1)}
+          >
+            Previous
+          </button>
+          <span>Page {meta.currentPage} of {meta.lastPage}</span>
+          <button 
+            disabled={page === meta.lastPage} 
+            onClick={() => setPage(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---

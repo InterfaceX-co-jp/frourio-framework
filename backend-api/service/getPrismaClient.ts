@@ -15,45 +15,63 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { pagination } from '$/@frouvel/kaname/paginator';
 
-let prisma: PrismaClient | null = null;
+let prisma: ReturnType<typeof createPrismaClient> | null = null;
 
-export const getPrismaClient = (): PrismaClient => {
-  if (!prisma) {
-    // Build connection URL with pool parameters
-    const databaseUrl = process.env.DATABASE_URL;
-    const connectionPoolSize = parseInt(
-      process.env.DATABASE_CONNECTION_POOL_SIZE || '10',
-      10,
-    );
-    const connectionTimeout = parseInt(
-      process.env.DATABASE_CONNECTION_TIMEOUT || '30',
-      10,
-    );
-    const poolTimeout = parseInt(process.env.DATABASE_POOL_TIMEOUT || '2', 10);
+function createPrismaClient() {
+  // Build connection URL with pool parameters
+  const databaseUrl = process.env.DATABASE_URL;
+  const connectionPoolSize = parseInt(
+    process.env.DATABASE_CONNECTION_POOL_SIZE || '10',
+    10,
+  );
+  const connectionTimeout = parseInt(
+    process.env.DATABASE_CONNECTION_TIMEOUT || '30',
+    10,
+  );
+  const poolTimeout = parseInt(process.env.DATABASE_POOL_TIMEOUT || '2', 10);
 
-    // Add connection pool parameters to URL if not already present
-    let enhancedUrl = databaseUrl;
-    if (databaseUrl && !databaseUrl.includes('connection_limit')) {
-      const separator = databaseUrl.includes('?') ? '&' : '?';
-      enhancedUrl = `${databaseUrl}${separator}connection_limit=${connectionPoolSize}&pool_timeout=${poolTimeout}&connect_timeout=${connectionTimeout}`;
-    }
+  // Add connection pool parameters to URL if not already present
+  let enhancedUrl = databaseUrl;
+  if (databaseUrl && !databaseUrl.includes('connection_limit')) {
+    const separator = databaseUrl.includes('?') ? '&' : '?';
+    enhancedUrl = `${databaseUrl}${separator}connection_limit=${connectionPoolSize}&pool_timeout=${poolTimeout}&connect_timeout=${connectionTimeout}`;
+  }
 
-    prisma = new PrismaClient({
-      // Connection pool configuration
-      datasources: {
-        db: {
-          url: enhancedUrl,
-        },
+  const client = new PrismaClient({
+    // Connection pool configuration
+    datasources: {
+      db: {
+        url: enhancedUrl,
       },
-      // Logging configuration
-      log:
-        process.env.NODE_ENV === 'development'
-          ? ['query', 'info', 'warn', 'error']
-          : ['warn', 'error'],
-      // Error formatting
-      errorFormat: 'pretty',
-    });
+    },
+    // Logging configuration
+    log:
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'info', 'warn', 'error']
+        : ['warn', 'error'],
+    // Error formatting
+    errorFormat: 'pretty',
+  });
+
+  // Apply pagination extension
+  return client.$extends(
+    pagination({
+      pages: {
+        limit: 10,
+        includePageCount: true,
+      },
+      cursor: {
+        limit: 10,
+      },
+    })
+  );
+}
+
+export const getPrismaClient = () => {
+  if (!prisma) {
+    prisma = createPrismaClient();
 
     // Test connection on initialization
     prisma.$connect().catch((error) => {
