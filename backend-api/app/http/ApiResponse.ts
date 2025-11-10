@@ -365,6 +365,9 @@ export const ApiResponse = {
   },
 } as const;
 
+// Export ResponseBuilder
+export { ResponseBuilder } from './ResponseBuilder';
+
 // Export types
 export type {
   ProblemDetails,

@@ -51,4 +51,25 @@ export type Methods = DefineMethods<{
       };
     }>;
   };
+  options: {
+    reqBody: {
+      name: string;
+      description?: string;
+      email: string;
+      age: number;
+      siteAreaSquareMeter?: number | null;
+      minCapacity: number;
+    };
+    resBody: ApiResponse<{
+      message: string;
+      data: {
+        name: string;
+        description?: string;
+        email: string;
+        age: number;
+        siteAreaSquareMeter?: number | null;
+        minCapacity: number;
+      };
+    }>;
+  };
 }>;
