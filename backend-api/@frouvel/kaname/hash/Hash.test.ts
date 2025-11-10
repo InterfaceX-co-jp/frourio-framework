@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { Hash, hashPassword, verifyPassword } from './Hash';
-import { BcryptHashStrategy } from './strategies/BcryptHashStrategy';
-import type { IHashStrategy } from './strategies/HashStrategy.interface';
+import { BcryptHashStrategy } from './strategy/BcryptHashStrategy';
+import type { IHashStrategy } from './strategy/HashStrategy.interface';
 
 // Mock strategy for testing
 class MockHashStrategy implements IHashStrategy {

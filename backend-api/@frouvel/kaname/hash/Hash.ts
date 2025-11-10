@@ -19,8 +19,11 @@
  * const hashed = await Hash.make('secret123');
  */
 
-import type { IHashStrategy, HashStrategyOptions } from './strategies/HashStrategy.interface';
-import { BcryptHashStrategy } from './strategies/BcryptHashStrategy';
+import type {
+  IHashStrategy,
+  HashStrategyOptions,
+} from './strategy/HashStrategy.interface';
+import { BcryptHashStrategy } from './strategy/BcryptHashStrategy';
 
 // ============================================================================
 // Strategy Management

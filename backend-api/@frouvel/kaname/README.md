@@ -16,12 +16,12 @@ RFC9457-compliant error responses and response building utilities.
 
 ### Hash Module (`@frouvel/kaname/hash`)
 
-Password hashing operations inspired by Laravel's Hash facade.
+Password hashing operations inspired by Laravel's Hash facade with Strategy Pattern support.
 
 ```ts
 import { Hash } from '$/@frouvel/kaname/hash/Hash';
 
-// Hash a password
+// Hash a password (default: bcrypt)
 const hashed = await Hash.make('secret123');
 
 // Verify a password
@@ -32,6 +32,22 @@ const strongHash = await Hash.make('secret123', { rounds: 12 });
 
 // Alternative syntax
 const isValid2 = await Hash.verify('secret123', hashed);
+```
+
+**Strategy Pattern Support:**
+
+```ts
+import { Hash } from '$/@frouvel/kaname/hash';
+import { BcryptHashStrategy } from '$/@frouvel/kaname/hash/strategies';
+
+// Set custom strategy with options
+Hash.setStrategy(new BcryptHashStrategy({ rounds: 12 }));
+
+// Check current strategy
+console.log(Hash.getStrategyName()); // 'bcrypt'
+
+// Create your own strategy by implementing IHashStrategy
+// See hash/README.md for detailed examples
 ```
 
 ### Error Module (`@frouvel/kaname/error`)
