@@ -14,8 +14,13 @@ import {
   RegisterProviders,
   BootProviders,
 } from './bootstrappers';
+import type { Command } from '../console/Command';
+import { Command as CommanderCommand } from 'commander';
 
 export class ConsoleKernel extends Kernel {
+  private readonly _commands: Map<string, Command> = new Map();
+  private _program: CommanderCommand | null = null;
+
   /**
    * Get the bootstrappers for console commands
    */
@@ -30,16 +35,79 @@ export class ConsoleKernel extends Kernel {
   }
 
   /**
+   * Register a command
+   */
+  registerCommand(command: Command): void {
+    const signature = command.getSignature();
+    this._commands.set(signature.name, command);
+  }
+
+  /**
+   * Register multiple commands
+   */
+  registerCommands(commands: Command[]): void {
+    commands.forEach((command) => this.registerCommand(command));
+  }
+
+  /**
+   * Get all registered commands
+   */
+  getCommands(): Map<string, Command> {
+    return this._commands;
+  }
+
+  /**
+   * Get the Commander program instance
+   */
+  getProgram(): CommanderCommand {
+    if (!this._program) {
+      this._program = new CommanderCommand();
+      this._program
+        .name('artisan')
+        .description('frourio-framework Artisan Console')
+        .version('1.0.0');
+    }
+    return this._program;
+  }
+
+  /**
+   * Set the Commander program instance
+   */
+  setProgram(program: CommanderCommand): void {
+    this._program = program;
+  }
+
+  /**
+   * Build the Commander program with registered commands
+   */
+  buildProgram(): CommanderCommand {
+    const program = this.getProgram();
+
+    // Register all commands
+    this._commands.forEach((command) => {
+      const sig = command.getSignature();
+      // Create command with name in constructor (required by Commander.js)
+      const cmd = new CommanderCommand(sig.name);
+      command.configure(cmd);
+      program.addCommand(cmd);
+    });
+
+    return program;
+  }
+
+  /**
    * Handle a console command
    */
   async handle(command: string, args: string[] = []): Promise<void> {
     // Bootstrap the application
     await this.bootstrap();
 
-    console.log(`[ConsoleKernel] Executing command: ${command}`);
+    const cmd = this._commands.get(command);
+    if (!cmd) {
+      throw new Error(`Command [${command}] not found`);
+    }
 
-    // Command execution logic would go here
-    // This is where you would integrate with Commander.js or your CLI framework
+    await cmd.handle(...args);
   }
 
   /**
@@ -51,7 +119,22 @@ export class ConsoleKernel extends Kernel {
   ): Promise<void> {
     await this.bootstrap();
 
-    // Execute command with parameters
-    console.log(`[ConsoleKernel] Calling command: ${command}`, parameters);
+    const cmd = this._commands.get(command);
+    if (!cmd) {
+      throw new Error(`Command [${command}] not found`);
+    }
+
+    // Convert parameters to array of arguments
+    const args = Object.values(parameters);
+    await cmd.handle(...args);
+  }
+
+  /**
+   * Run the console application
+   */
+  async run(argv: string[]): Promise<void> {
+    await this.bootstrap();
+    const program = this.buildProgram();
+    await program.parseAsync(argv);
   }
 }

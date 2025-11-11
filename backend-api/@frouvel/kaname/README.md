@@ -1,5 +1,153 @@
 # @frouvel/kaname
 
+Core framework modules for frourio-framework, inspired by Laravel's Illuminate namespace.
+
+## Modules
+
+### Console
+PHP Artisan-like command line interface for managing your application.
+
+**Features:**
+- Base Command class for creating custom commands
+- Automatic command registration via service providers
+- Built-in helper methods for console output
+- Support for arguments and options
+- Type-safe command signatures
+
+**Quick Start:**
+```bash
+npm run artisan inspire
+npm run artisan config:cache
+npm run artisan greet "John" --title "Dr."
+```
+
+[📖 Full Documentation](console/README.md)
+
+### Foundation
+Application container and kernel management inspired by Laravel.
+
+**Includes:**
+- [`Application`](foundation/Application.ts) - IoC container for dependency injection
+- [`HttpKernel`](foundation/HttpKernel.ts) - HTTP request handling
+- [`ConsoleKernel`](foundation/ConsoleKernel.ts) - Console command handling
+- Bootstrappers for application initialization
+
+### HTTP
+HTTP response utilities and error handling.
+
+**Features:**
+- RFC9457-compliant error responses via [`ApiResponse`](http/ApiResponse.ts)
+- Fluent [`ResponseBuilder`](http/ResponseBuilder.ts) API for validation
+- Structured error classes
+
+### Error
+Structured error handling with automatic RFC9457 conversion.
+
+**Includes:**
+- [`FrourioFrameworkError`](error/FrourioFrameworkError.ts) - Base error class
+- [`CommonErrors`](error/CommonErrors.ts) - Pre-defined error types
+
+### Hash
+Password hashing utilities.
+
+**Features:**
+- Strategy pattern for multiple hashing algorithms
+- Bcrypt implementation included
+
+### Paginator
+Pagination utilities for list endpoints.
+
+**Features:**
+- [`createPaginationMeta`](paginator/createPaginationMeta.ts) - Generate pagination metadata
+
+### Validation
+Zod-based validation utilities.
+
+**Features:**
+- [`Validator`](validation/Validator.ts) - Validation helper class
+
+## Installation
+
+These modules are part of the frourio-framework and are already available in your project under `$/@frouvel/kaname`.
+
+## Usage Examples
+
+### Creating a Console Command
+
+```typescript
+import { Command, type CommandSignature } from '$/@frouvel/kaname/console';
+
+export class MyCommand extends Command {
+  protected signature(): CommandSignature {
+    return {
+      name: 'my:command',
+      description: 'My custom command',
+    };
+  }
+
+  async handle(): Promise<void> {
+    this.info('Running my command...');
+    this.success('Done!');
+  }
+}
+```
+
+### Using the Application Container
+
+```typescript
+import app from '$/bootstrap/app';
+
+// Bind a service
+app.singleton('myService', () => new MyService());
+
+// Resolve a service
+const service = app.make<MyService>('myService');
+```
+
+### Creating HTTP Responses
+
+```typescript
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+
+// Success response
+return ApiResponse.success({ id: 1, name: 'John' });
+
+// Error responses
+return ApiResponse.notFound('User not found', { userId: '123' });
+return ApiResponse.badRequest('Invalid input');
+```
+
+## Philosophy
+
+@frouvel/kaname follows these principles:
+
+1. **Laravel-inspired**: Familiar patterns for developers coming from Laravel
+2. **Type-safe**: Full TypeScript support with strong typing
+3. **Modular**: Use only what you need
+4. **DDD-friendly**: Supports Domain-Driven Design patterns
+5. **Framework-agnostic**: Core utilities can be used independently
+
+## Documentation
+
+- [Console Commands](console/README.md)
+- [Foundation](foundation/README.md)
+- [HTTP Response Handling](../docs/RFC9457_QUICK_START.md)
+- [Error Handling](../docs/RFC9457_ERROR_HANDLING.md)
+
+## Contributing
+
+When adding new modules to @frouvel/kaname:
+
+1. Follow existing patterns and conventions
+2. Include comprehensive TypeScript types
+3. Add documentation with examples
+4. Write tests for new functionality
+5. Update this README with the new module
+
+## License
+
+ISC
+
 - かつてfrourioで受託開発をしていた際のチーム名がkaname-devでした.
 - 由来は「すずめの戸締まり」の要石で, 炎上したプロジェクトでも１人で鎮火するという意味が込められています.
 - 転じて, 炎上とは無縁のモジュール群を提供したいという思いで作られています.

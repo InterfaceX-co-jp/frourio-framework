@@ -1,235 +1,266 @@
 # Backend API
 
-A modern TypeScript backend API built with Fastify, Frourio, and Prisma.
+Backend API for frourio-framework project.
 
-## 🚀 Tech Stack
+## Getting Started
 
-- **[Fastify](https://fastify.dev/)** - Fast and low overhead web framework for Node.js
-- **[Frourio](https://frourio.com/docs)** - Type-safe API framework with automatic type generation
-- **[Prisma](https://www.prisma.io/)** - Next-generation ORM for database management and migrations
-- **[Vitest](https://vitest.dev/)** - Fast unit testing framework
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
-- **[ESLint](https://eslint.org/)** - Code linting and formatting
-- **[npm-run-all](https://www.npmjs.com/package/npm-run-all)** - Managing multiple npm scripts
+### Prerequisites
 
-## 📋 Prerequisites
+- Node.js >= 20.0.0
+- npm or yarn
+- PostgreSQL (or your preferred database)
 
-- **Node.js** >= 20.0.0
-- **PostgreSQL** database
-- **npm** or **yarn**
+### Installation
 
-## 🛠️ Setup
+```bash
+npm install
+```
 
-1. **Clone and navigate to the project:**
+### Environment Setup
 
-   ```bash
-   cd backend-api
-   ```
+Copy the example environment file and configure it:
 
-2. **Install dependencies:**
+```bash
+cp .env.example .env
+```
 
-   ```bash
-   npm install
-   ```
+### Database Setup
 
-3. **Environment configuration:**
+```bash
+# Run migrations
+npm run migrate:dev
 
-   ```bash
-   cp .env.example .env
-   ```
-
-   Update the `.env` file with your configuration:
-
-   ```env
-   TZ=Asia/Tokyo
-   API_SERVER_PORT=31577
-   API_BASE_PATH=/api
-   API_JWT_SECRET=your-secret-key
-   API_ORIGIN=http://localhost:31577
-   DATABASE_URL=postgresql://username:password@localhost:5432/database_name
-   TEST_DATABASE_URL=postgresql://username:password@localhost:5432/test_database_name
-   WEB_FRONTEND_URL=http://localhost:3000
-   ```
-
-4. **Database setup:**
-
-   ```bash
-   # Run migrations and seed data
-   npm run migrate:dev
-   ```
-
-5. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-
-## 📝 Available Scripts
+# Or for production
+npm run migrate:deploy
+```
 
 ### Development
 
 ```bash
-# Start development server with hot reload
 npm run dev
-
-# Generate types (Aspida, Frourio, Prisma)
-npm run generate
-
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-npm run lint:fix
 ```
 
-### Database Management
+This will start:
+- 📦 Build watcher
+- 🏃 Application server
+- 🏰 Frourio code generator
+
+## Artisan Console
+
+The project includes an Artisan-like CLI for managing your application.
+
+### Running Commands
 
 ```bash
-# Run development migrations with seeding
-npm run migrate:dev
-
-# Create migration only (without applying)
-npm run migrate:dev:createonly
-
-# Deploy migrations to production
-npm run migrate:deploy
-
-# Reset database (⚠️ destructive)
-npm run migrate:reset
-
-# Run development seeder
-npm run seed:dev
-
-# Run production seeder
-npm run seed:production
+npm run artisan <command> [arguments] [options]
 ```
+
+### Available Commands
+
+```bash
+# Get help
+npm run artisan --help
+npm run artisan <command> --help
+
+# Built-in commands
+npm run artisan inspire                    # Display an inspiring quote
+npm run artisan config:cache               # Cache configuration
+npm run artisan config:clear               # Clear configuration cache
+npm run artisan greet "John" --title "Dr." # Greet command example
+```
+
+### Creating Custom Commands
+
+See the [Console Documentation](@frouvel/kaname/console/README.md) for detailed instructions on creating custom commands.
+
+Quick example:
+
+```typescript
+import { Command, type CommandSignature } from '$/@frouvel/kaname/console';
+
+export class MyCommand extends Command {
+  protected signature(): CommandSignature {
+    return {
+      name: 'my:command',
+      description: 'Description of my command',
+    };
+  }
+
+  async handle(): Promise<void> {
+    this.info('Running command...');
+    this.success('Done!');
+  }
+}
+```
+
+Register in `bootstrap/providers/ConsoleServiceProvider.ts`:
+
+```typescript
+kernel.registerCommands([
+  new MyCommand(app),
+]);
+```
+
+## Scripts
+
+### Development
+
+- `npm run dev` - Start development server with hot reload
+- `npm run dev:build` - Watch and build TypeScript files
+- `npm run dev:run` - Run the server with Node watch mode
+- `npm run dev:frourio` - Watch and generate Frourio files
+
+### Building
+
+- `npm run build` - Build for production
+- `npm run generate` - Generate Aspida, Frourio, and Prisma types
+- `npm run generate:aspida` - Generate Aspida types
+- `npm run generate:frourio` - Generate Frourio files
+- `npm run generate:prisma` - Generate Prisma client
+
+### Database
+
+- `npm run migrate:dev` - Run migrations and seed database (development)
+- `npm run migrate:dev:createonly` - Create migration without running
+- `npm run migrate:deploy` - Run migrations and seed (production)
+- `npm run migrate:reset` - Reset database
+- `npm run seed:dev` - Seed development data
+- `npm run seed:production` - Seed production data
 
 ### Testing
 
-```bash
-# Run tests
-npm run test
-```
+- `npm run test` - Run tests
+- `npm run typecheck` - Check TypeScript types
+
+### Linting
+
+- `npm run lint` - Lint code
+- `npm run lint:fix` - Lint and fix code
 
 ### Production
 
-```bash
-# Build for production
-npm run build
+- `npm run start` - Start production server
+- `npm run artisan` - Run Artisan console commands
 
-# Start production server
-npm run start
-```
+### Utility
 
-### CLI Commands
+- `npm run tsx` - Run TypeScript files with tsx
+- `npm run cli` - Run the legacy CLI (deprecated, use artisan instead)
 
-```bash
-# Run custom CLI commands
-npm run cli
-```
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 backend-api/
-├── api/                    # API route definitions (Frourio)
-│   ├── health/            # Health check endpoint
-│   └── index.ts           # Root API endpoint
-├── app/                   # Application utilities
-│   ├── hash/              # Password hashing utilities
-│   ├── http/              # HTTP response utilities
-│   └── paginator/         # Pagination utilities
-├── commonConstantsWithClient/  # Shared constants
-├── commonTypesWithClient/      # Shared TypeScript types
-├── config/                # Configuration files
-├── consoleCommands/       # CLI commands
-├── entrypoints/           # Application entry points
-├── middleware/            # Fastify middleware
-├── prisma/                # Database schema and migrations
-│   ├── migrations/        # Database migrations
-│   ├── seeders/          # Database seeders
-│   └── schema.prisma     # Prisma schema
-├── scripts/               # Build scripts
-├── service/               # Core services
-└── tests/                 # Test files
+├── @frouvel/kaname/          # Core framework modules
+│   ├── artisan/              # Artisan CLI entry point
+│   ├── console/              # Console command system
+│   ├── error/                # Error handling
+│   ├── foundation/           # Application foundation
+│   ├── hash/                 # Hashing utilities
+│   ├── http/                 # HTTP response utilities
+│   ├── paginator/            # Pagination utilities
+│   └── validation/           # Validation utilities
+├── api/                      # API routes (Frourio)
+├── bootstrap/                # Application bootstrap
+│   ├── cache/                # Configuration cache
+│   └── providers/            # Service providers
+├── commonConstantsWithClient/# Shared constants
+├── commonTypesWithClient/    # Shared types
+├── config/                   # Configuration files
+├── domain/                   # Domain layer (DDD)
+├── entrypoints/              # Application entry points
+├── middleware/               # Middleware
+├── prisma/                   # Prisma schema and migrations
+├── scripts/                  # Build scripts
+├── service/                  # Application services
+└── tests/                    # Test files
 ```
 
-## 🔌 API Endpoints
+## Architecture
 
-- **GET** `/` - Root endpoint
-- **GET** `/health` - Health check endpoint
+This project follows Domain-Driven Design (DDD) principles:
 
-## 🗄️ Database
+- **API Layer**: Route handlers (controllers)
+- **Domain Layer**: Business logic, entities, repositories, use cases
+- **Infrastructure Layer**: External services, database access
 
-The project uses PostgreSQL with Prisma ORM. The database schema is defined in [`prisma/schema.prisma`](prisma/schema.prisma).
+### @frouvel/kaname
 
-### Models
+Core framework inspired by Laravel's Illuminate namespace:
 
-- **User** - Basic user model with timestamps
+- **Foundation**: Application container and kernels
+- **Console**: Artisan-like CLI system
+- **HTTP**: Response builders and error handling
+- **Error**: Structured error classes
+- **Hash**: Password hashing
+- **Validation**: Zod-based validation
+- **Paginator**: Pagination utilities
 
-## 🧪 Testing
+See [@frouvel/kaname/README.md](@frouvel/kaname/README.md) for more details.
 
-Tests are written using Vitest and can be found in the [`tests/`](tests/) directory.
+## API Development
+
+### Creating an Endpoint
+
+1. Create route directory in `api/`
+2. Define types in `index.ts`
+3. Implement controller in `controller.ts`
+4. Create use cases in `domain/`
+
+Example:
+
+```typescript
+// api/users/index.ts
+import type { DefineMethods } from 'aspida';
+import type { UserModelDto, ProblemDetails } from 'commonTypesWithClient';
+
+export type Methods = DefineMethods<{
+  get: {
+    resBody: UserModelDto | ProblemDetails;
+  };
+}>;
+
+// api/users/controller.ts
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+import { FindUserUseCase } from '$/domain/user/usecase/FindUser.usecase';
+import { defineController } from './$relay';
+
+export default defineController(() => ({
+  get: ({ params }) =>
+    FindUserUseCase.create()
+      .handleById({ id: params.id })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get),
+}));
+```
+
+## Testing
 
 ```bash
 npm run test
 ```
 
-## 🔧 Configuration
+Tests are written using Vitest.
 
-### Environment Variables
+## Environment Variables
 
-| Variable            | Description                     | Default                  |
-| ------------------- | ------------------------------- | ------------------------ |
-| `TZ`                | Timezone                        | `Asia/Tokyo`             |
-| `API_SERVER_PORT`   | Server port                     | `31577`                  |
-| `API_BASE_PATH`     | API base path                   | `/api`                   |
-| `API_JWT_SECRET`    | JWT secret key                  | -                        |
-| `API_ORIGIN`        | API origin URL                  | `http://localhost:31577` |
-| `DATABASE_URL`      | PostgreSQL connection string    | -                        |
-| `TEST_DATABASE_URL` | Test database connection string | -                        |
-| `WEB_FRONTEND_URL`  | Frontend URL for CORS           | `http://localhost:3000`  |
+See `.env.example` for required environment variables.
 
-### JWT Authentication
+## Documentation
 
-The API supports JWT-based authentication with middleware for both user and admin authentication:
+- [Artisan Console](@frouvel/kaname/console/README.md)
+- [RFC9457 Error Handling](docs/RFC9457_ERROR_HANDLING.md)
+- [Response Builder](docs/RESPONSE_BUILDER.md)
+- [Frontend API Usage](docs/RFC9457_FRONTEND_USAGE.md)
 
-- [`authUserMiddleware.ts`](middleware/authUserMiddleware.ts)
-- [`authAdminMiddleware.ts`](middleware/authAdminMiddleware.ts)
+## Contributing
 
-## 🚀 Deployment
+1. Follow DDD principles
+2. Use TypeScript strict mode
+3. Write tests for new features
+4. Update documentation
+5. Follow the code style (ESLint + Prettier)
 
-1. **Build the application:**
+## License
 
-   ```bash
-   npm run build
-   ```
-
-2. **Set production environment variables**
-
-3. **Run database migrations:**
-
-   ```bash
-   npm run migrate:deploy
-   ```
-
-4. **Start the production server:**
-   ```bash
-   npm run start
-   ```
-
-## 📚 Development Notes
-
-- The project uses ES modules (`"type": "module"`)
-- TypeScript configuration is in [`tsconfig.json`](tsconfig.json)
-- ESLint configuration is in [`eslint.config.js`](eslint.config.js)
-- Prettier configuration is in [`.prettierrc`](.prettierrc)
-- The API automatically generates types using Frourio and Aspida
-- Database models are auto-generated using Prisma
-
-## 🤝 Contributing
-
-1. Follow the existing code style and conventions
-2. Run tests before submitting changes: `npm run test`
-3. Ensure type checking passes: `npm run typecheck`
-4. Fix any linting issues: `npm run lint:fix`
+ISC

@@ -33,7 +33,7 @@
     "lint": "npx eslint .",
     "lint:fix": "npx eslint --fix .",
     "tsx": "tsx",
-    "cli": "tsx consoleCommands/cli/index.ts"
+    "artisan": "tsx @frouvel/kaname/artisan/index.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.production.ts"

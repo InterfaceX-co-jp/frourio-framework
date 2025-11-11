@@ -13,6 +13,7 @@ import {
   ConsoleKernel,
 } from '$/@frouvel/kaname/foundation';
 import { DatabaseServiceProvider } from './providers/DatabaseServiceProvider';
+import { ConsoleServiceProvider } from './providers/ConsoleServiceProvider';
 // Get the base path (backend-api directory)
 // After bundling, __dirname already points to backend-api/ (the build output directory)
 const basePath = __dirname;
@@ -57,6 +58,7 @@ app.singleton('ConsoleKernel', () => new ConsoleKernel(app));
 
 const providers = [
   DatabaseServiceProvider,
+  ConsoleServiceProvider,
   // Add your application-specific service providers here
 ];
 

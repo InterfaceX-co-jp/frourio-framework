@@ -15,6 +15,7 @@ export interface ServiceProvider {
 export class Application {
   private readonly _bindings: Map<string, any> = new Map();
   private readonly _singletons: Map<string, any> = new Map();
+  private readonly _singletonInstances: Map<string, any> = new Map();
   private readonly _providers: ServiceProvider[] = [];
   private _booted: boolean = false;
   private _basePath: string;
@@ -73,8 +74,16 @@ export class Application {
   make<T>(key: string): T {
     // Check singletons first
     if (this._singletons.has(key)) {
-      const value = this._singletons.get(key);
-      return typeof value === 'function' ? value() : value;
+      // Return cached instance if it exists
+      if (this._singletonInstances.has(key)) {
+        return this._singletonInstances.get(key);
+      }
+      
+      // Create and cache the instance
+      const factory = this._singletons.get(key);
+      const instance = typeof factory === 'function' ? factory() : factory;
+      this._singletonInstances.set(key, instance);
+      return instance;
     }
 
     // Check bindings
