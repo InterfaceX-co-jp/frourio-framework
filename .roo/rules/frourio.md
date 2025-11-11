@@ -708,3 +708,210 @@ export class CreateUserUseCase {
 - Private fields: `private readonly _fieldName`
 - Private constructor with static `create()` factory method
 - Public execution methods: `handle()`, `handleById()`, `handleByUserId()`, etc.
+
+## @frouvel/kaname Framework Additions
+
+### Database Module (`@frouvel/kaname/database`)
+
+The framework now includes a comprehensive database management module for Prisma:
+
+**Location**: [`@frouvel/kaname/database/`](backend-api/@frouvel/kaname/database/)
+
+**Features**:
+- Connection pool management with configurable parameters
+- Automatic retry logic with exponential backoff
+- Graceful shutdown handling
+- Health check functionality
+- Connection reset capabilities
+
+**Usage**:
+```ts
+import { getPrismaClient } from '$/@frouvel/kaname/database';
+
+const prisma = getPrismaClient();
+// Prisma client ready to use with connection pooling
+```
+
+**Environment Variables**:
+- `DATABASE_CONNECTION_POOL_SIZE`: Max connections (default: 10)
+- `DATABASE_CONNECTION_TIMEOUT`: Timeout in seconds (default: 30)  
+- `DATABASE_POOL_TIMEOUT`: Pool timeout in seconds (default: 2)
+
+### Framework Service Providers (`@frouvel/kaname/foundation/providers`)
+
+The framework provides built-in service providers that handle core functionality:
+
+**Location**: [`@frouvel/kaname/foundation/providers/`](backend-api/@frouvel/kaname/foundation/providers/)
+
+**Available Providers**:
+
+1. **DatabaseServiceProvider**: Manages Prisma client lifecycle
+   - Auto-registers `prisma` singleton in the application container
+   - Handles database connection on boot
+   - Implements graceful disconnection
+
+2. **ConsoleServiceProvider**:  Registers built-in console commands
+   - `config:cache` - Cache configuration for production
+   - `config:clear` - Clear configuration cache
+   - `generate:config-types` - Generate type-safe config types
+   - `inspire` - Display inspiring quote
+   - `greet` - Example command with arguments
+   - `tinker` - Interactive REPL with app context
+
+**Registration** ([`bootstrap/app.ts`](backend-api/bootstrap/app.ts)):
+```ts
+import {
+  Application,
+  DatabaseServiceProvider,
+  ConsoleServiceProvider,
+} from '$/@frouvel/kaname/foundation';
+
+const providers = [
+  DatabaseServiceProvider,
+  ConsoleServiceProvider,
+  // Application providers here
+];
+```
+
+### Artisan Console System
+
+**Unified CLI**: All console commands are now managed through a single `npm run artisan` interface.
+
+**Available Commands**:
+```bash
+npm run artisan                    # List all commands
+npm run artisan config:cache       # Cache config
+npm run artisan generate:config-types  # Generate types
+npm run artisan tinker             # Interactive REPL
+npm run artisan {your-command}     # Run custom command
+```
+
+### Application Structure
+
+The framework enforces a clean separation between framework and application code:
+
+```
+backend-api/
+├── @frouvel/kaname/              # FRAMEWORK code
+│   ├── database/                 # Database utilities
+│   ├── foundation/               # Application foundation
+│   │   └── providers/            # Framework service providers
+│   ├── docs/                     # Framework documentation
+│   ├── scripts/                  # Standalone build scripts
+│   │   └── generate-config-types.ts  # Fast config generation for CI
+│   └── ...                       # Other framework modules
+│
+├── app/                          # APPLICATION code
+│   ├── console/                  # Custom console commands
+│   │   └── ExampleCommand.ts    # Example custom command
+│   └── providers/                # Application service providers
+│       └── AppServiceProvider.ts # Main app provider
+│
+├── config/                       # Configuration files
+│   ├── *.ts                      # Config files
+│   └── $types.ts                 # Auto-generated types
+│
+└── bootstrap/
+    └── app.ts                    # Application bootstrap
+```
+
+### Creating Custom Commands
+
+**3-Step Process**:
+
+1. **Create command** in `app/console/YourCommand.ts`:
+```ts
+import { Command } from '$/@frouvel/kaname/console/Command';
+import type { Application } from '$/@frouvel/kaname/foundation';
+
+export class YourCommand extends Command {
+  constructor(app: Application) {
+    super(app);
+  }
+
+  protected signature() {
+    return {
+      name: 'your:command',
+      description: 'Your command description',
+      arguments: [
+        { name: 'arg', description: 'An argument', required: true }
+      ],
+      options: [
+        { flags: '-o, --option <value>', description: 'An option' }
+      ]
+    };
+  }
+
+  async handle(arg: string, options: { option?: string }) {
+    this.info(`Running command with: ${arg}`);
+    if (options.option) {
+      this.line(`Option value: ${options.option}`);
+    }
+    this.success('Done!');
+  }
+}
+```
+
+2. **Import** in `app/providers/AppServiceProvider.ts`:
+```ts
+import { YourCommand } from '$/app/console/YourCommand';
+```
+
+3. **Register** in `AppServiceProvider.boot()`:
+```ts
+async boot(app: Application): Promise<void> {
+  const kernel = app.make<ConsoleKernel>('ConsoleKernel');
+  
+  kernel.registerCommands([
+    new YourCommand(app),
+    // More commands...
+  ]);
+}
+```
+
+### Build & CI Integration
+
+The framework includes standalone scripts for fast CI/CD builds:
+
+**Config Generation** ([`@frouvel/kaname/scripts/generate-config-types.ts`](backend-api/@frouvel/kaname/scripts/generate-config-types.ts)):
+- Generates `config/$types.ts` without app bootstrap
+- No database connection required
+- Fast execution (<1s)
+
+**NPM Scripts** ([`package.json`](backend-api/package.json)):
+```json
+{
+  "scripts": {
+    "generate": "concurrently ... \"npm run generate:config\"",
+    "generate:config": "tsx @frouvel/kaname/scripts/generate-config-types.ts",
+    "typecheck": "tsc --noEmit"
+  }
+}
+```
+
+**CI Workflow**:
+```bash
+npm run generate    # Generates aspida, frourio, prisma, AND config types
+npm run typecheck   # All types available, no errors
+```
+
+### Best Practices
+
+1. **Service Providers**:
+   - Framework providers in `@frouvel/kaname/foundation/providers/`
+   - Application providers in `app/providers/`
+   - Register framework providers first, then app providers
+
+2. **Database Access**:
+   - Import from `@frouvel/kaname/database`, not `service/getPrismaClient`
+   - Use the singleton from container: `app.make<PrismaClient>('prisma')`
+
+3. **Console Commands**:
+   - Framework commands in `@frouvel/kaname/console/commands/`
+   - Application commands in `app/console/`
+   - Always register through service providers
+
+4. **Configuration**:
+   - Config files in `config/*.ts`
+   - Auto-generated types in `config/$types.ts` (git-ignore this)
+   - Run `npm run generate:config` before type checking in CI
