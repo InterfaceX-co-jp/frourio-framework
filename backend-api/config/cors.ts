@@ -18,15 +18,26 @@ export const corsConfigSchema = z.object({
 
 export type CorsConfig = z.infer<typeof corsConfigSchema>;
 
+// Helper to get CORS origins for backward compatibility
+export const CORS_ORIGINS = [
+  env.WEB_FRONTEND_URL,
+  ...(env.CORS_ADDITIONAL_ORIGINS
+    ? env.CORS_ADDITIONAL_ORIGINS.split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
+    : []),
+];
+
 export default corsConfigSchema.parse({
-  origins: [
+  origins: CORS_ORIGINS,
+  /*origins: [
     env.WEB_FRONTEND_URL,
     ...(env.CORS_ADDITIONAL_ORIGINS
       ? env.CORS_ADDITIONAL_ORIGINS.split(',')
           .map((o) => o.trim())
           .filter(Boolean)
-      : []),
-  ],
+      : []),*/
+  //],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
