@@ -13,11 +13,9 @@ import {
   ConsoleKernel,
 } from '$/@frouvel/kaname/foundation';
 import { DatabaseServiceProvider } from './providers/DatabaseServiceProvider';
-import { dirname } from 'path';
-
-// Get the base path (parent directory of bootstrap)
-// Using CommonJS __dirname since this is built as CommonJS
-const basePath = dirname(__dirname);
+// Get the base path (backend-api directory)
+// After bundling, __dirname already points to backend-api/ (the build output directory)
+const basePath = __dirname;
 
 /*
 |--------------------------------------------------------------------------

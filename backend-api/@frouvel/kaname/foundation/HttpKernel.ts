@@ -13,7 +13,6 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import { Kernel } from './Kernel';
-import type { Application } from './Application';
 import type { Bootstrapper } from './Bootstrapper.interface';
 import {
   LoadEnvironmentVariables,
@@ -68,7 +67,9 @@ export class HttpKernel extends Kernel {
     console.log(`[HttpKernel] Creating Fastify instance in ${env} mode`);
 
     const app = Fastify({
-      maxParamLength: 1000,
+      routerOptions: {
+        maxParamLength: 1000,
+      },
       ...serverFactory,
       logger:
         env === 'production'
