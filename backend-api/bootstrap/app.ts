@@ -14,9 +14,12 @@ import {
 } from '$/@frouvel/kaname/foundation';
 import { DatabaseServiceProvider } from './providers/DatabaseServiceProvider';
 import { ConsoleServiceProvider } from './providers/ConsoleServiceProvider';
+import { join } from 'path';
+
 // Get the base path (backend-api directory)
-// After bundling, __dirname already points to backend-api/ (the build output directory)
-const basePath = __dirname;
+// In development: __dirname points to bootstrap/, so go up one level
+// After bundling: __dirname points to backend-api/ directly
+const basePath = join(__dirname, '..');
 
 /*
 |--------------------------------------------------------------------------

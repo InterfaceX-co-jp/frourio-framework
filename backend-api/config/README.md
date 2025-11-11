@@ -92,29 +92,92 @@ npm run artisan config:clear
 
 ## Adding New Configuration Files
 
-1. Create a new `.ts` file in this directory (e.g., `mail.ts`)
-2. Export a default object with your configuration:
+**Configuration files are automatically discovered!** Simply create a new `.ts` file with a Zod schema.
+
+### Step-by-Step Guide
+
+1. **Create config file with Zod schema** (e.g., `mail.ts`):
 
 ```typescript
 // config/mail.ts
-export default {
-  driver: process.env.MAIL_DRIVER || 'smtp',
-  host: process.env.MAIL_HOST || 'localhost',
-  port: parseInt(process.env.MAIL_PORT || '587', 10),
-};
+import { z } from 'zod';
+import { env } from '$/env';
+
+// Define schema - types are auto-inferred!
+export const mailConfigSchema = z.object({
+  driver: z.enum(['smtp', 'sendgrid', 'mailgun']),
+  host: z.string(),
+  port: z.number().positive(),
+  encryption: z.enum(['tls', 'ssl']).nullable(),
+  from: z.object({
+    address: z.string().email(),
+    name: z.string(),
+  }),
+});
+
+// Auto-infer type from schema - no manual typing needed!
+export type MailConfig = z.infer<typeof mailConfigSchema>;
+
+// Export validated config
+export default mailConfigSchema.parse({
+  driver: env.MAIL_DRIVER,
+  host: env.MAIL_HOST,
+  port: env.MAIL_PORT,
+  encryption: env.MAIL_ENCRYPTION,
+  from: {
+    address: env.MAIL_FROM_ADDRESS,
+    name: env.MAIL_FROM_NAME,
+  },
+});
 ```
 
-3. Add the filename (without extension) to the `configFiles` array in `@frouvel/kaname/foundation/bootstrappers/LoadConfiguration.ts`:
+2. **Add environment variables to `env.ts`**:
 
 ```typescript
-const configFiles = ['app', 'admin', 'cors', 'database', 'jwt', 'mail'];
+export const envSchema = z.object({
+  // ... existing variables
+  MAIL_DRIVER: z.enum(['smtp', 'sendgrid', 'mailgun']).default('smtp'),
+  MAIL_HOST: z.string().default('localhost'),
+  MAIL_PORT: z.coerce.number().default(587),
+  MAIL_ENCRYPTION: z.enum(['tls', 'ssl']).nullable().default('tls'),
+  MAIL_FROM_ADDRESS: z.string().email().default('noreply@example.com'),
+  MAIL_FROM_NAME: z.string().default('App Name'),
+});
 ```
 
-4. Access it using the config helper:
+3. **Update type definitions in `@frouvel/kaname/config/types.ts`**:
 
 ```typescript
-const mailDriver = config('mail.driver');
+import type { MailConfig } from '$/config/mail';
+
+export type { MailConfig };
+
+export interface Config {
+  // ... existing configs
+  mail: MailConfig;
+}
 ```
+
+4. **Access with full type safety**:
+
+```typescript
+import { config, configObject } from '$/@frouvel/kaname/config';
+
+// Property access (recommended - type-safe)
+const driver = configObject.mail.driver;  // Type: 'smtp' | 'sendgrid' | 'mailgun'
+const port = configObject.mail.port;      // Type: number
+
+// Function access (when you need defaults)
+const driver = config('mail.driver');
+```
+
+**Benefits:**
+- ✅ **Zero manual type maintenance** - types auto-inferred from Zod schemas
+- ✅ **Runtime validation** - config values validated at startup
+- ✅ **Type safety** - full TypeScript support with IntelliSense
+- ✅ **Auto-discovery** - no framework changes needed
+
+**Note:** Files are automatically discovered (excluding `.d.ts`, `.test.ts`, `.spec.ts`, `README.md`).
 
 ## Best Practices
 

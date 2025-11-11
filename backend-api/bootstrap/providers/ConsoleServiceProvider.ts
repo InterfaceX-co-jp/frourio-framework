@@ -12,6 +12,7 @@ import type { ConsoleKernel } from '$/@frouvel/kaname/foundation';
 import {
   ConfigCacheCommand,
   ConfigClearCommand,
+  GenerateConfigTypesCommand,
   InspireCommand,
   GreetCommand,
   TinkerCommand,
@@ -31,6 +32,7 @@ export class ConsoleServiceProvider implements ServiceProvider {
     kernel.registerCommands([
       new ConfigCacheCommand(app),
       new ConfigClearCommand(app),
+      new GenerateConfigTypesCommand(app),
       new InspireCommand(app),
       new GreetCommand(app),
       new TinkerCommand(app),

@@ -4,52 +4,37 @@
  * Configure allowed origins for Cross-Origin Resource Sharing.
  */
 
+import { z } from 'zod';
 import { env } from '$/env';
 
-export default {
-  /**
-   * Allowed Origins
-   *
-   * List of origins that are allowed to access the API.
-   * Can be strings or RegExp patterns.
-   */
+export const corsConfigSchema = z.object({
+  origins: z.array(z.string()),
+  methods: z.array(z.string()),
+  allowedHeaders: z.array(z.string()),
+  exposedHeaders: z.array(z.string()),
+  credentials: z.boolean(),
+  maxAge: z.number().positive(),
+});
+
+export type CorsConfig = z.infer<typeof corsConfigSchema>;
+
+export default corsConfigSchema.parse({
   origins: [
     env.WEB_FRONTEND_URL,
-    // Add additional origins from environment variable
     ...(env.CORS_ADDITIONAL_ORIGINS
       ? env.CORS_ADDITIONAL_ORIGINS.split(',')
           .map((o) => o.trim())
           .filter(Boolean)
       : []),
   ],
-
-  /**
-   * Allowed Methods
-   */
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-
-  /**
-   * Allowed Headers
-   */
   allowedHeaders: [
     'Content-Type',
     'Authorization',
     'X-Requested-With',
     'Accept',
   ],
-
-  /**
-   * Exposed Headers
-   */
   exposedHeaders: ['X-Total-Count'],
-
-  /**
-   * Credentials
-   */
   credentials: true,
-
-  /**
-   * Max Age (in seconds)
-   */
-  maxAge: 86400, // 24 hours
-};
+  maxAge: 86400,
+});

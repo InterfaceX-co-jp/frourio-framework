@@ -6,6 +6,7 @@
 
 export { ConfigCacheCommand } from './ConfigCacheCommand';
 export { ConfigClearCommand } from './ConfigClearCommand';
+export { GenerateConfigTypesCommand } from './GenerateConfigTypesCommand';
 export { InspireCommand } from './InspireCommand';
 export { GreetCommand } from './GreetCommand';
 export { TinkerCommand } from './TinkerCommand';
