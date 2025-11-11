@@ -14,12 +14,17 @@ import {
 } from '$/@frouvel/kaname/foundation';
 import { DatabaseServiceProvider } from './providers/DatabaseServiceProvider';
 import { ConsoleServiceProvider } from './providers/ConsoleServiceProvider';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 // Get the base path (backend-api directory)
-// In development: __dirname points to bootstrap/, so go up one level
-// After bundling: __dirname points to backend-api/ directly
-const basePath = join(__dirname, '..');
+// Resolve to absolute path to ensure consistency across environments
+// Go up from bootstrap/ to backend-api/
+const basePath = resolve(__dirname, '..');
+
+// Debug: Log the resolved paths
+console.log('[Bootstrap] __dirname:', __dirname);
+console.log('[Bootstrap] Resolved basePath:', basePath);
+console.log('[Bootstrap] Config path will be:', join(basePath, 'config'));
 
 /*
 |--------------------------------------------------------------------------
