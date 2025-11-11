@@ -1,6 +1,6 @@
 /**
  * Config Cache Command
- * 
+ *
  * Caches the application configuration for improved performance.
  * Similar to Laravel's `php artisan config:cache`
  */
@@ -9,7 +9,7 @@ import { Command } from 'commander';
 import type { ICommandLineInterface } from './Command.interface';
 import app from '$/bootstrap/app';
 import { LoadConfiguration } from '$/@frouvel/kaname/foundation/bootstrappers/LoadConfiguration';
-import { ConsoleKernel } from '$/@frouvel/kaname/foundation/ConsoleKernel';
+import type { ConsoleKernel } from '$/@frouvel/kaname/foundation/ConsoleKernel';
 
 export class ConfigCacheCommand implements ICommandLineInterface {
   private constructor() {}

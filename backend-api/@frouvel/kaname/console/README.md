@@ -27,6 +27,39 @@ npm run artisan config:clear
 
 **Note:** The artisan commands must be run through `npm run artisan` (not `npx artisan`) because they require TypeScript execution via tsx.
 
+### Interactive REPL (Tinker)
+
+Start an interactive REPL session to interact with your application:
+
+```bash
+npm run artisan tinker
+```
+
+**Quick Example - Query All Users:**
+```javascript
+> // Query all users
+> const users = await prisma.user.findMany()
+> console.log(users)
+[]  // Returns array of users
+
+> // Count users
+> await prisma.user.count()
+0   // Returns count
+
+> // Find first user
+> const user = await prisma.user.findFirst()
+> console.log(user)
+
+> // Get user by ID (if you know the ID)
+> await prisma.user.findUnique({ where: { id: 'some-uuid-here' } })
+
+> .exit
+```
+
+**Note:** If you need to create test data, use your API endpoints or Prisma Studio instead of tinker. Tinker is best for **querying and inspecting** data.
+
+See the [Tinker Guide](TINKER_GUIDE.md) for comprehensive examples and usage patterns.
+
 ### Available Commands
 
 ```bash
