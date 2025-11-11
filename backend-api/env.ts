@@ -1,11 +1,20 @@
 import dotenv from 'dotenv';
+import { z } from 'zod';
+import { Env } from './@frouvel/kaname/env/Env.js';
 
 dotenv.config();
 
-export const NODE_ENV = process.env.NODE_ENV ?? 'N/A';
+export const envSchema = z.object({
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
+  DATABASE_URL: z.string().url(),
+  API_SERVER_PORT: z.coerce.number().min(1024).max(65535).default(8080),
+  API_BASE_PATH: z.string().default('/api'),
+  API_JWT_SECRET: z.string().min(1),
+  WEB_FRONTEND_URL: z.string().url(),
+});
 
-export const API_SERVER_PORT = +(process.env.API_SERVER_PORT ?? '8080');
-export const API_BASE_PATH = process.env.API_BASE_PATH ?? '';
-export const API_JWT_SECRET = process.env.API_JWT_SECRET ?? '';
+Env.registerSchema(envSchema);
 
-export const WEB_FRONTEND_URL = process.env.WEB_FRONTEND_URL ?? '';
+export const env = envSchema.parse(process.env);
