@@ -46,11 +46,15 @@ export const envSchema = z.object({
   ADMIN_TOKEN_EXPIRATION: z.coerce.number().positive().default(86400),
 
   // CORS
-  WEB_FRONTEND_URL: z.string().url(),
+  WEB_FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   CORS_ADDITIONAL_ORIGINS: z.string().optional().default(''),
 });
 
-Env.registerSchema(envSchema);
+// In test environment, don't exit on validation errors to allow tests to run
+const isTestEnv = process.env.NODE_ENV === 'test';
+Env.registerSchema(envSchema, {
+  exitOnError: !isTestEnv,
+});
 
 export const env = envSchema.parse(process.env);
 
