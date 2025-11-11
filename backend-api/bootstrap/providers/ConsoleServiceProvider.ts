@@ -14,6 +14,7 @@ import {
   ConfigClearCommand,
   InspireCommand,
   GreetCommand,
+  TinkerCommand,
 } from '$/@frouvel/kaname/console/commands';
 
 export class ConsoleServiceProvider implements ServiceProvider {
@@ -32,6 +33,7 @@ export class ConsoleServiceProvider implements ServiceProvider {
       new ConfigClearCommand(app),
       new InspireCommand(app),
       new GreetCommand(app),
+      new TinkerCommand(app),
     ]);
   }
 }

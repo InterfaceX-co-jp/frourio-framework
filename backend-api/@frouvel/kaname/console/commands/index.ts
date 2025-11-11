@@ -8,3 +8,4 @@ export { ConfigCacheCommand } from './ConfigCacheCommand';
 export { ConfigClearCommand } from './ConfigClearCommand';
 export { InspireCommand } from './InspireCommand';
 export { GreetCommand } from './GreetCommand';
+export { TinkerCommand } from './TinkerCommand';
