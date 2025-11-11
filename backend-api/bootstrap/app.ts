@@ -11,20 +11,17 @@ import {
   Application,
   HttpKernel,
   ConsoleKernel,
+  DatabaseServiceProvider,
+  ConsoleServiceProvider,
 } from '$/@frouvel/kaname/foundation';
-import { DatabaseServiceProvider } from './providers/DatabaseServiceProvider';
-import { ConsoleServiceProvider } from './providers/ConsoleServiceProvider';
-import { join, resolve } from 'path';
+import { AppServiceProvider } from '$/app/providers/AppServiceProvider';
+import { resolve } from 'path';
 
 // Get the base path (backend-api directory)
 // Resolve to absolute path to ensure consistency across environments
 // Go up from bootstrap/ to backend-api/
 const basePath = resolve(__dirname, '..');
 
-// Debug: Log the resolved paths
-console.log('[Bootstrap] __dirname:', __dirname);
-console.log('[Bootstrap] Resolved basePath:', basePath);
-console.log('[Bootstrap] Config path will be:', join(basePath, 'config'));
 
 /*
 |--------------------------------------------------------------------------
@@ -65,9 +62,12 @@ app.singleton('ConsoleKernel', () => new ConsoleKernel(app));
 */
 
 const providers = [
+  // Framework providers
   DatabaseServiceProvider,
   ConsoleServiceProvider,
-  // Add your application-specific service providers here
+  
+  // Application providers
+  AppServiceProvider,
 ];
 
 providers.forEach((Provider) => {

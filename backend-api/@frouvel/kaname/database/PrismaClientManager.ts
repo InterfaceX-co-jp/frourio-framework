@@ -1,5 +1,5 @@
 /**
- * Enhanced Prisma Client Service with Connection Pool Management
+ * Enhanced Prisma Client Manager with Connection Pool Management
  *
  * This service provides:
  * - Connection pool configuration via environment variables

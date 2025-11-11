@@ -7,7 +7,7 @@
 
 import { Command, type CommandSignature } from '../Command';
 import * as repl from 'repl';
-import { getPrismaClient } from '$/service/getPrismaClient';
+import { getPrismaClient } from '$/@frouvel/kaname/database';
 
 export class TinkerCommand extends Command {
   protected signature(): CommandSignature {

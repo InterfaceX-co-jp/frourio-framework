@@ -1,16 +1,13 @@
 /**
  * Database Service Provider
  *
- * Registers database-related services with the application container.
- * Example service provider showing how to register Prisma client.
+ * Framework-level service provider that registers database services.
+ * Registers Prisma client as a singleton and handles connection setup.
  */
 
-import type {
-  ServiceProvider,
-  Application,
-} from '$/@frouvel/kaname/foundation';
+import type { Application, ServiceProvider } from '../Application';
 import type { PrismaClient } from '@prisma/client';
-import { getPrismaClient } from '$/service/getPrismaClient';
+import { getPrismaClient } from '../../database';
 
 export class DatabaseServiceProvider implements ServiceProvider {
   /**

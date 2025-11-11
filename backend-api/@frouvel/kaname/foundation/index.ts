@@ -20,3 +20,5 @@ export {
   RegisterProviders,
   BootProviders,
 } from './bootstrappers';
+
+export { ConsoleServiceProvider, DatabaseServiceProvider } from './providers';

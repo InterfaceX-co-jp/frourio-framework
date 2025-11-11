@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import util from 'util';
 import { exec } from 'child_process';
-import { getPrismaClient } from '$/service/getPrismaClient';
+import { getPrismaClient } from '$/@frouvel/kaname/database';
 import { env } from '$/env';
 import { init } from '$/service/app';
 
