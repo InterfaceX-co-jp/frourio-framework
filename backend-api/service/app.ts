@@ -6,7 +6,7 @@ import jwt from '@fastify/jwt';
 import { config } from 'dotenv';
 import type { FastifyServerFactory } from 'fastify';
 import Fastify from 'fastify';
-import { NODE_ENV } from '$/env';
+import { env } from '$/env';
 import { CORS_ORIGINS } from '$/config/cors';
 import { AbstractFrourioFrameworkError } from '$/@frouvel/kaname/error/FrourioFrameworkError';
 import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/@frouvel/kaname/http/ApiResponse';
@@ -23,11 +23,13 @@ export const init = (serverFactory?: FastifyServerFactory) => {
   //   profilesSampleRate: 1.0,
   // });
 
+  console.log(`Application running in ${env.NODE_ENV} mode.`);
+
   const app = Fastify({
     maxParamLength: 1000, // This defaults to 100: returns 404 error params surpass this length
     ...serverFactory,
     logger:
-      NODE_ENV === 'production'
+      env.NODE_ENV === 'production'
         ? true // Defualt log
         : {
             level: 'info',
