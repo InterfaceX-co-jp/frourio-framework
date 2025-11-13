@@ -5,7 +5,6 @@
  */
 
 import { z } from 'zod';
-import { env } from '$/env';
 
 export const jwtConfigSchema = z.object({
   secret: z.string().min(1),
@@ -25,9 +24,9 @@ export const jwtConfigSchema = z.object({
 export type JwtConfig = z.infer<typeof jwtConfigSchema>;
 
 export default jwtConfigSchema.parse({
-  secret: env.API_JWT_SECRET,
-  expiresIn: env.JWT_EXPIRES_IN,
-  refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
+  secret: process.env.API_JWT_SECRET || 'your-secret-key-change-this-in-production',
+  expiresIn: Number(process.env.JWT_EXPIRES_IN || 86400),
+  refreshExpiresIn: Number(process.env.JWT_REFRESH_EXPIRES_IN || 604800),
   scope: {
     admin: ['admin'] as const,
     user: {
@@ -35,6 +34,6 @@ export default jwtConfigSchema.parse({
     },
   },
   algorithm: 'HS256' as const,
-  issuer: env.JWT_ISSUER,
-  audience: env.JWT_AUDIENCE,
+  issuer: process.env.JWT_ISSUER || 'frourio-framework',
+  audience: process.env.JWT_AUDIENCE || 'frourio-framework-api',
 });

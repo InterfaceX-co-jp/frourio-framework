@@ -13,6 +13,7 @@ import type { ConsoleKernel } from '$/@frouvel/kaname/foundation';
 
 // Import your custom commands here
 import { ExampleCommand } from '$/app/console/ExampleCommand';
+import { GenerateOpenApiCommand } from '$/app/console/GenerateOpenApiCommand';
 
 export class AppServiceProvider implements ServiceProvider {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -28,6 +29,7 @@ export class AppServiceProvider implements ServiceProvider {
     // Register your commands here:
     kernel.registerCommands([
       new ExampleCommand(app),
+      new GenerateOpenApiCommand(app),
       // Add more commands here as needed
     ]);
 

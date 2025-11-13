@@ -5,7 +5,6 @@
  */
 
 import { z } from 'zod';
-import { env } from '../env.js';
 
 const swaggerConfigSchema = z.object({
   enabled: z.boolean(),
@@ -34,14 +33,14 @@ const isEnabled = (() => {
 
 export default swaggerConfigSchema.parse({
   enabled: isEnabled,
-  path: env.SWAGGER_PATH || '/api-docs',
-  title: env.SWAGGER_TITLE || env.APP_NAME || 'API',
-  version: env.SWAGGER_VERSION || '1.0.0',
-  description: env.SWAGGER_DESCRIPTION || 'API Documentation',
+  path: process.env.SWAGGER_PATH || '/api-docs',
+  title: process.env.SWAGGER_TITLE || process.env.APP_NAME || 'API',
+  version: process.env.SWAGGER_VERSION || '1.0.0',
+  description: process.env.SWAGGER_DESCRIPTION || 'API Documentation',
   servers: [
     {
-      url: env.APP_URL || 'http://localhost:31577',
-      description: env.NODE_ENV === 'production' ? 'Production' : 'Development',
+      url: process.env.APP_URL || 'http://localhost:31577',
+      description: process.env.NODE_ENV === 'production' ? 'Production' : 'Development',
     },
   ],
 });
