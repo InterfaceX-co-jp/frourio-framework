@@ -81,8 +81,11 @@ Automatic OpenAPI specification generation and Swagger UI integration.
 
 - Automatic OpenAPI 3.0 spec generation from aspida types
 - Interactive Swagger UI for API documentation
+- JSDoc comment parsing for rich documentation
+- Custom tag descriptions and grouping
 - Framework-level integration via service provider
 - RFC9457 ProblemDetails schema support
+- OpenAPI spec file generation command
 
 **Quick Start:**
 
@@ -90,12 +93,32 @@ Automatic OpenAPI specification generation and Swagger UI integration.
 # Access Swagger UI
 http://localhost:{PORT}/api-docs
 
+# Generate OpenAPI spec file
+npm run artisan openapi:generate          # YAML (default)
+npm run artisan openapi:generate -f json  # JSON format
+
 # Configure via environment
 SWAGGER_ENABLED=true
 SWAGGER_PATH=/api-docs
+SWAGGER_TITLE=My API
 ```
 
-[📖 Full Documentation](swagger/README.md)
+**Enhanced Documentation with JSDoc:**
+
+```typescript
+/**
+ * Get user by ID
+ * @description Retrieves user details
+ * @tag Users
+ */
+export type Methods = DefineMethods<{
+  get: {
+    resBody: UserDto | ProblemDetails;
+  };
+}>;
+```
+
+[📖 Full Documentation](swagger/README.md) | [📘 Usage Guide](swagger/USAGE_GUIDE.md)
 
 ### Validation
 
@@ -251,14 +274,36 @@ Zod-based validation utilities.
 
 Automatic OpenAPI 3.0 specification generation from aspida type definitions with Swagger UI.
 
+**Features:**
+- Auto-generates OpenAPI spec from aspida types
+- Parses JSDoc comments for rich documentation
+- Custom tag descriptions via [`config/swagger.ts`](../../config/swagger.ts)
+- Interactive Swagger UI
+- OpenAPI spec file generation command
+
 ```ts
 // Automatically enabled in development via SwaggerServiceProvider
 // Access at http://localhost:8080/api-docs
 
-// Configure via environment variables
+// Configure via environment variables or config/swagger.ts
 SWAGGER_ENABLED=true
 SWAGGER_PATH=/api-docs
 SWAGGER_TITLE=My API
+
+// Generate OpenAPI spec file
+npm run artisan openapi:generate
+npm run artisan openapi:generate -f json
+```
+
+**JSDoc Enhancement:**
+```typescript
+/**
+ * @tag Users
+ * @description User management endpoint
+ */
+export type Methods = DefineMethods<{
+  get: { resBody: UserDto | ProblemDetails };
+}>;
 ```
 
 ### Paginator Module (`@frouvel/kaname/paginator`)
