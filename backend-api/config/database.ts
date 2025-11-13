@@ -1,11 +1,10 @@
 /**
  * Database Configuration
- * 
+ *
  * Configuration for database connections.
  */
 
 import { z } from 'zod';
-import { env } from '$/env';
 
 export const databaseConfigSchema = z.object({
   default: z.string(),
@@ -31,19 +30,21 @@ export const databaseConfigSchema = z.object({
 export type DatabaseConfig = z.infer<typeof databaseConfigSchema>;
 
 export default databaseConfigSchema.parse({
-  default: env.DB_CONNECTION,
+  default: process.env.DB_CONNECTION || 'postgresql',
   connections: {
     postgresql: {
-      url: env.DATABASE_URL,
-      schema: env.DB_SCHEMA,
+      url:
+        process.env.DATABASE_URL ||
+        'postgresql://root:root@localhost:5432/frourio_framework',
+      schema: process.env.DB_SCHEMA || 'public',
     },
   },
   pool: {
-    min: env.DB_POOL_MIN,
-    max: env.DB_POOL_MAX,
+    min: Number(process.env.DB_POOL_MIN || 2),
+    max: Number(process.env.DB_POOL_MAX || 10),
   },
   migrations: {
-    tableName: env.DB_MIGRATIONS_TABLE,
+    tableName: process.env.DB_MIGRATIONS_TABLE || 'migrations',
     directory: './prisma/migrations',
   },
   seeds: {

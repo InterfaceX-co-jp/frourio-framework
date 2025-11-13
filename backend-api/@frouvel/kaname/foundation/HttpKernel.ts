@@ -12,6 +12,8 @@ import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUI from '@fastify/swagger-ui';
 import { Kernel } from './Kernel';
 import type { Bootstrapper } from './Bootstrapper.interface';
 import {
@@ -23,9 +25,22 @@ import {
 } from './bootstrappers';
 import { AbstractFrourioFrameworkError } from '../error/FrourioFrameworkError';
 import { PROBLEM_DETAILS_MEDIA_TYPE } from '../http/ApiResponse';
+import type { OpenApiGenerator } from '../swagger/OpenApiGenerator';
+import { config } from '../config';
 
 export class HttpKernel extends Kernel {
   private _fastifyInstance: FastifyInstance | null = null;
+
+  /**
+   * Get the Fastify instance
+   * Used by service providers that need to register routes/plugins
+   */
+  getFastify(): FastifyInstance {
+    if (!this._fastifyInstance) {
+      throw new Error('Fastify instance not initialized. Call handle() first.');
+    }
+    return this._fastifyInstance;
+  }
 
   /**
    * Get the bootstrappers for HTTP requests
@@ -109,17 +124,35 @@ export class HttpKernel extends Kernel {
     await app.register(helmet);
 
     // CORS configuration
-    const config = this._app.has('config')
-      ? this._app.make<Record<string, any>>('config')
-      : {};
-    const corsConfig = config.cors || {};
-
-    await app.register(cors, {
-      origin: corsConfig.origins || '*',
-      credentials: true,
-      methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    });
+    try {
+      const corsConfig = config('cors');
+      await app.register(cors, {
+        origin: corsConfig?.origins || '*',
+        credentials: corsConfig?.credentials ?? true,
+        methods: corsConfig?.methods || [
+          'GET',
+          'HEAD',
+          'PUT',
+          'POST',
+          'DELETE',
+          'PATCH',
+          'OPTIONS',
+        ],
+        allowedHeaders: corsConfig?.allowedHeaders || [
+          'Content-Type',
+          'Authorization',
+        ],
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      console.warn('[HttpKernel] CORS config not found, using defaults');
+      await app.register(cors, {
+        origin: '*',
+        credentials: true,
+        methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+      });
+    }
 
     // Cookie support
     await app.register(cookie);
@@ -129,7 +162,65 @@ export class HttpKernel extends Kernel {
       secret: process.env.API_JWT_SECRET ?? '',
     });
 
+    // Swagger/OpenAPI documentation
+    await this.registerSwagger(app);
+
     console.log('[HttpKernel] Plugins registered');
+  }
+  /**
+   * Register Swagger/OpenAPI documentation
+   */
+  private async registerSwagger(app: FastifyInstance): Promise<void> {
+    try {
+      const swaggerConfig = config('swagger');
+
+      // Skip if config not loaded or disabled
+      if (!swaggerConfig || !swaggerConfig.enabled) {
+        if (!swaggerConfig) {
+          console.log('[HttpKernel] Swagger config not loaded, skipping');
+        } else {
+          console.log('[HttpKernel] Swagger is disabled');
+        }
+        return;
+      }
+
+      // Get OpenAPI generator from container if available
+      if (!this._app.has('swagger')) {
+        console.log(
+          '[HttpKernel] Swagger generator not available in container',
+        );
+        return;
+      }
+
+      const generator = this._app.make<OpenApiGenerator>('swagger');
+      const spec = generator.generate();
+
+      // Register @fastify/swagger plugin with generated spec
+      await app.register(fastifySwagger, {
+        mode: 'static',
+        specification: {
+          document: spec,
+        },
+      });
+
+      // Register @fastify/swagger-ui plugin
+      await app.register(fastifySwaggerUI, {
+        routePrefix: swaggerConfig.path || '/api-docs',
+        uiConfig: {
+          docExpansion: 'list',
+          deepLinking: true,
+        },
+        staticCSP: true,
+        transformStaticCSP: (header) => header,
+      });
+
+      console.log(
+        `[HttpKernel] Swagger UI available at ${swaggerConfig.path || '/api-docs'}`,
+      );
+    } catch (error) {
+      console.error('[HttpKernel] Failed to register Swagger:', error);
+      // Don't throw - Swagger is optional
+    }
   }
 
   /**

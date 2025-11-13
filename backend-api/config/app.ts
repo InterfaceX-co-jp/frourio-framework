@@ -5,7 +5,6 @@
  */
 
 import { z } from 'zod';
-import { env } from '$/env';
 
 export const appConfigSchema = z.object({
   name: z.string(),
@@ -20,11 +19,11 @@ export const appConfigSchema = z.object({
 export type AppConfig = z.infer<typeof appConfigSchema>;
 
 export default appConfigSchema.parse({
-  name: env.APP_NAME,
-  env: env.NODE_ENV,
-  debug: env.APP_DEBUG,
-  url: env.APP_URL,
-  timezone: env.TZ,
-  locale: env.APP_LOCALE,
-  fallbackLocale: env.APP_FALLBACK_LOCALE,
+  name: process.env.APP_NAME || 'Frourio Framework',
+  env: process.env.NODE_ENV || 'development',
+  debug: String(process.env.APP_DEBUG) === 'true',
+  url: process.env.APP_URL || 'http://localhost:8080',
+  timezone: process.env.TZ || 'UTC',
+  locale: process.env.APP_LOCALE || 'en',
+  fallbackLocale: process.env.APP_FALLBACK_LOCALE || 'en',
 });

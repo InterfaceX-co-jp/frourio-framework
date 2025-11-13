@@ -5,7 +5,6 @@
  */
 
 import { z } from 'zod';
-import { env } from '$/env';
 
 export const adminConfigSchema = z.object({
   email: z.string().email(),
@@ -17,8 +16,8 @@ export const adminConfigSchema = z.object({
 export type AdminConfig = z.infer<typeof adminConfigSchema>;
 
 export default adminConfigSchema.parse({
-  email: env.ADMIN_EMAIL,
-  password: env.ADMIN_PASSWORD,
-  sessionTimeout: env.ADMIN_SESSION_TIMEOUT,
-  tokenExpiration: env.ADMIN_TOKEN_EXPIRATION,
+  email: process.env.ADMIN_EMAIL || 'admin@frourio-framework.com',
+  password: process.env.ADMIN_PASSWORD || 'Qwerty1!',
+  sessionTimeout: Number(process.env.ADMIN_SESSION_TIMEOUT || 3600),
+  tokenExpiration: Number(process.env.ADMIN_TOKEN_EXPIRATION || 86400),
 });

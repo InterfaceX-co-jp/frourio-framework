@@ -13,14 +13,18 @@ import {
   ConsoleKernel,
   DatabaseServiceProvider,
   ConsoleServiceProvider,
+  SwaggerServiceProvider,
 } from '$/@frouvel/kaname/foundation';
 import { AppServiceProvider } from '$/app/providers/AppServiceProvider';
 import { resolve } from 'path';
 
 // Get the base path (backend-api directory)
 // Resolve to absolute path to ensure consistency across environments
-// Go up from bootstrap/ to backend-api/
-const basePath = resolve(__dirname, '..');
+// In production build, __dirname is backend-api/ (where index.js is)
+// In development, __dirname is backend-api/bootstrap/
+const basePath = __dirname.endsWith('bootstrap')
+  ? resolve(__dirname, '..')
+  : __dirname;
 
 
 /*
@@ -65,6 +69,7 @@ const providers = [
   // Framework providers
   DatabaseServiceProvider,
   ConsoleServiceProvider,
+  SwaggerServiceProvider,
   
   // Application providers
   AppServiceProvider,

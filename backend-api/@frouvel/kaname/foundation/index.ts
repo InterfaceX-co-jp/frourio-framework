@@ -21,4 +21,8 @@ export {
   BootProviders,
 } from './bootstrappers';
 
-export { ConsoleServiceProvider, DatabaseServiceProvider } from './providers';
+export {
+  ConsoleServiceProvider,
+  DatabaseServiceProvider,
+  SwaggerServiceProvider,
+} from './providers';

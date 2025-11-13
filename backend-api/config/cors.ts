@@ -5,7 +5,6 @@
  */
 
 import { z } from 'zod';
-import { env } from '$/env';
 
 export const corsConfigSchema = z.object({
   origins: z.array(z.string()),
@@ -20,9 +19,9 @@ export type CorsConfig = z.infer<typeof corsConfigSchema>;
 
 // Helper to get CORS origins for backward compatibility
 export const CORS_ORIGINS = [
-  env.WEB_FRONTEND_URL,
-  ...(env.CORS_ADDITIONAL_ORIGINS
-    ? env.CORS_ADDITIONAL_ORIGINS.split(',')
+  process.env.WEB_FRONTEND_URL || 'http://localhost:3000',
+  ...(process.env.CORS_ADDITIONAL_ORIGINS
+    ? process.env.CORS_ADDITIONAL_ORIGINS.split(',')
         .map((o) => o.trim())
         .filter(Boolean)
     : []),
@@ -30,14 +29,6 @@ export const CORS_ORIGINS = [
 
 export default corsConfigSchema.parse({
   origins: CORS_ORIGINS,
-  /*origins: [
-    env.WEB_FRONTEND_URL,
-    ...(env.CORS_ADDITIONAL_ORIGINS
-      ? env.CORS_ADDITIONAL_ORIGINS.split(',')
-          .map((o) => o.trim())
-          .filter(Boolean)
-      : []),*/
-  //],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',

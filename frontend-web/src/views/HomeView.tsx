@@ -19,7 +19,7 @@ export default function HomeView() {
   // Example: Success response
   const handleSuccessExample = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$get()
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$get()
 
       console.log('Success response:', response)
       toast.success(`Success: ${response.message}`)
@@ -32,7 +32,7 @@ export default function HomeView() {
   // Example: Not Found Error (using handleApiResponse)
   const handleNotFoundExample = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$post({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$post({
         body: {
           simulateNotFound: true,
           resourceId: '123',
@@ -54,7 +54,7 @@ export default function HomeView() {
   // Example: Validation Error (using displayValidationErrors)
   const handleValidationExample = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$post({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$post({
         body: {
           simulateValidation: true,
         },
@@ -83,7 +83,7 @@ export default function HomeView() {
   // Example: Unauthorized Error (with custom error handling)
   const handleUnauthorizedExample = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$post({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$post({
         body: {
           simulateUnauthorized: true,
         },
@@ -110,7 +110,7 @@ export default function HomeView() {
   // Example: Bad Request (simplified with handleApiResponse)
   const handleBadRequestExample = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$put({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$put({
         body: {
           // name is missing (required)
         },
@@ -130,7 +130,7 @@ export default function HomeView() {
   // Example: Validator facade with valid data
   const handleValidationSuccess = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$patch({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$patch({
         body: {
           name: '山田太郎',
           description: 'テストユーザー',
@@ -153,7 +153,7 @@ export default function HomeView() {
   // Example: Validator facade with validation errors
   const handleValidationErrors = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$patch({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$patch({
         body: {
           name: '', // Invalid: empty
           email: 'invalid-email', // Invalid: not email format
@@ -179,7 +179,7 @@ export default function HomeView() {
   // Example: Validator facade with business logic error (age < 18)
   const handleBusinessLogicError = async () => {
     try {
-      const response = await defaultWithoutAuthApiClient.example_rfc9457.$patch({
+      const response = await defaultWithoutAuthApiClient.example.error.rfc9457.$patch({
         body: {
           name: '未成年ユーザー',
           email: 'minor@example.com',
@@ -225,19 +225,13 @@ export default function HomeView() {
       <div style={{ marginTop: '20px', marginBottom: '20px' }}>
         <h2>Validator Facade Examples (Backend PATCH endpoint)</h2>
         <p>Examples using the Laravel-inspired Validator facade with Zod</p>
-        
+
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button onClick={handleValidationSuccess}>
-            ✅ Valid Data (Success)
-          </button>
-          
-          <button onClick={handleValidationErrors}>
-            ❌ Invalid Data (Validation Errors)
-          </button>
-          
-          <button onClick={handleBusinessLogicError}>
-            🚫 Valid but Age &lt; 18 (Business Logic Error)
-          </button>
+          <button onClick={handleValidationSuccess}>✅ Valid Data (Success)</button>
+
+          <button onClick={handleValidationErrors}>❌ Invalid Data (Validation Errors)</button>
+
+          <button onClick={handleBusinessLogicError}>🚫 Valid but Age &lt; 18 (Business Logic Error)</button>
         </div>
       </div>
 

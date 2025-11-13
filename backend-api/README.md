@@ -66,7 +66,13 @@ npm run artisan <command> --help
 npm run artisan inspire                    # Display an inspiring quote
 npm run artisan config:cache               # Cache configuration
 npm run artisan config:clear               # Clear configuration cache
+npm run artisan generate:config-types      # Generate type-safe config types
 npm run artisan greet "John" --title "Dr." # Greet command example
+
+# OpenAPI/Swagger commands
+npm run artisan openapi:generate           # Generate OpenAPI spec file (YAML)
+npm run artisan openapi:generate -f json   # Generate as JSON
+npm run artisan openapi:generate -o ./openapi.yaml  # Custom output path
 ```
 
 ### Creating Custom Commands
@@ -246,9 +252,58 @@ Tests are written using Vitest.
 
 See `.env.example` for required environment variables.
 
+## API Documentation (Swagger/OpenAPI)
+
+This project includes automatic OpenAPI 3.0 specification generation and interactive Swagger UI.
+
+### Access Swagger UI
+
+Once the server is running:
+
+```
+http://localhost:31577/api-docs
+```
+
+### Features
+
+- **Automatic Generation**: OpenAPI spec auto-generated from aspida type definitions
+- **Interactive UI**: Test APIs directly from the browser
+- **JSDoc Support**: Enhanced documentation via JSDoc comments
+- **Tag Grouping**: Organize endpoints by custom tags
+- **RFC9457 Schemas**: Built-in ProblemDetails error schemas
+
+### Generate OpenAPI Spec File
+
+```bash
+# Generate YAML file (default)
+npm run artisan openapi:generate
+
+# Generate JSON file
+npm run artisan openapi:generate -f json
+
+# Custom output path
+npm run artisan openapi:generate -o ./docs/openapi.yaml
+```
+
+### Configuration
+
+Configure via [`config/swagger.ts`](config/swagger.ts) or environment variables:
+
+```bash
+SWAGGER_ENABLED=true
+SWAGGER_PATH=/api-docs
+SWAGGER_TITLE=My API
+SWAGGER_VERSION=1.0.0
+```
+
+For detailed documentation, see:
+- [Swagger Module README](@frouvel/kaname/swagger/README.md)
+- [Usage Guide](@frouvel/kaname/swagger/USAGE_GUIDE.md)
+
 ## Documentation
 
 - [Artisan Console](@frouvel/kaname/console/README.md)
+- [Swagger/OpenAPI](@frouvel/kaname/swagger/README.md)
 - [RFC9457 Error Handling](docs/RFC9457_ERROR_HANDLING.md)
 - [Response Builder](docs/RESPONSE_BUILDER.md)
 - [Frontend API Usage](docs/RFC9457_FRONTEND_USAGE.md)

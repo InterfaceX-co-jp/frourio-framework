@@ -48,6 +48,18 @@ export const envSchema = z.object({
   // CORS
   WEB_FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   CORS_ADDITIONAL_ORIGINS: z.string().optional().default(''),
+
+  // Swagger/OpenAPI
+  SWAGGER_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true')
+    .pipe(z.boolean())
+    .optional(),
+  SWAGGER_PATH: z.string().optional(),
+  SWAGGER_TITLE: z.string().optional(),
+  SWAGGER_VERSION: z.string().optional(),
+  SWAGGER_DESCRIPTION: z.string().optional(),
 });
 
 // In test environment, don't exit on validation errors to allow tests to run
