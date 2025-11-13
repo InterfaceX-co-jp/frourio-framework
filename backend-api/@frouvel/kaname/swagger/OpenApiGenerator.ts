@@ -33,6 +33,7 @@ export interface OpenApiGeneratorOptions {
   servers?: OpenAPIV3.ServerObject[];
   basePath?: string;
   apiBasePath?: string; // e.g., '/api'
+  tagDescriptions?: Record<string, string>; // Custom tag descriptions
 }
 
 export class OpenApiGenerator {
@@ -70,6 +71,7 @@ export class OpenApiGenerator {
           description: 'Development server',
         },
       ],
+      tags: [],
       paths: {},
       components: {
         schemas: {
@@ -173,7 +175,37 @@ export class OpenApiGenerator {
     const apiPath = join(this._basePath, 'api');
     this._scanApiDirectory(apiPath, spec, this._apiBasePath);
 
+    // Collect and deduplicate tags
+    const tagSet = new Set<string>();
+    Object.values(spec.paths).forEach((pathItem) => {
+      if (pathItem) {
+        Object.values(pathItem).forEach((operation: any) => {
+          if (operation?.tags) {
+            operation.tags.forEach((tag: string) => tagSet.add(tag));
+          }
+        });
+      }
+    });
+
+    // Add tag definitions with descriptions
+    spec.tags = Array.from(tagSet).sort().map((tag) => ({
+      name: tag,
+      description: this._getTagDescription(tag),
+    }));
+
     return spec;
+  }
+
+  /**
+   * Get description for a tag
+   */
+  private _getTagDescription(tag: string): string {
+    // Use custom tag descriptions if provided
+    if (this._options.tagDescriptions?.[tag]) {
+      return this._options.tagDescriptions[tag];
+    }
+    // Default description
+    return `${tag} related operations`;
   }
 
   /**
@@ -193,17 +225,32 @@ export class OpenApiGenerator {
 
         if (stat.isDirectory()) {
           // Recursively scan subdirectories
+          let paramName = entry;
+          
+          // Handle parameter directories (_id, _id@string, etc.)
+          if (entry.startsWith('_')) {
+            paramName = entry.slice(1); // Remove leading underscore
+            // Strip type annotations (@string, @number, etc.)
+            const atIndex = paramName.indexOf('@');
+            if (atIndex !== -1) {
+              paramName = paramName.substring(0, atIndex);
+            }
+          }
+          
           const newPrefix =
-            entry === '_id'
+            entry === '_id' || entry.startsWith('_id@')
               ? `${pathPrefix}/{id}`
               : entry.startsWith('_')
-                ? `${pathPrefix}/{${entry.slice(1)}}`
+                ? `${pathPrefix}/{${paramName}}`
                 : `${pathPrefix}/${entry}`;
 
           this._scanApiDirectory(fullPath, spec, newPrefix);
         } else if (entry === 'index.ts') {
-          // Parse route definition
-          this._parseRouteFile(fullPath, spec, pathPrefix || '/');
+          // Skip root controller.ts (api/index.ts)
+          // Only parse if we have a path prefix (not at root level)
+          if (pathPrefix && pathPrefix !== this._apiBasePath) {
+            this._parseRouteFile(fullPath, spec, pathPrefix);
+          }
         }
       }
     } catch (error) {

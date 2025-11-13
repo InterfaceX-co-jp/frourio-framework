@@ -20,9 +20,22 @@ const swaggerConfigSchema = z.object({
       }),
     )
     .optional(),
+  tagDescriptions: z.record(z.string(), z.string()).optional(),
 });
 
 export type SwaggerConfig = z.infer<typeof swaggerConfigSchema>;
+
+/**
+ * Tag descriptions for API grouping
+ * Define custom descriptions for your API tags here
+ */
+const tagDescriptions: Record<string, string> = {
+  Users: 'User management and account operations',
+  Health: 'Service health and status checks',
+  Auth: 'Authentication and authorization',
+  Admin: 'Administrative operations',
+  Example: 'Example endpoints for testing',
+};
 
 const isEnabled = (() => {
   if (process.env.SWAGGER_ENABLED !== undefined) {
@@ -43,4 +56,5 @@ export default swaggerConfigSchema.parse({
       description: process.env.NODE_ENV === 'production' ? 'Production' : 'Development',
     },
   ],
+  tagDescriptions,
 });

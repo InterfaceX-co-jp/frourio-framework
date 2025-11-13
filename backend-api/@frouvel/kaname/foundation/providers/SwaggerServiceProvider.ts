@@ -28,6 +28,7 @@ export class SwaggerServiceProvider implements ServiceProvider {
           servers: swaggerConfig.servers,
           basePath: app.basePath(),
           apiBasePath: process.env.API_BASE_PATH || '',
+          tagDescriptions: swaggerConfig.tagDescriptions,
         },
         app.basePath(),
       );

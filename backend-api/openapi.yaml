@@ -6,6 +6,7 @@ info:
 servers:
   - url: http://localhost:31577
     description: Development
+tags: []
 paths:
   /api/example/error/rfc9457:
     get:
@@ -141,29 +142,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api:
+  /api/users/{id}:
     get:
-      summary: GET /api
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-  /api/users/{id@string}:
-    get:
-      summary: GET /api/users/{id@string}
+      summary: GET /api/users/{id}
       responses:
         "200":
           description: Successful response
@@ -182,13 +163,13 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       parameters:
-        - name: id@string
+        - name: id
           in: path
           required: true
           schema:
             type: string
     patch:
-      summary: PATCH /api/users/{id@string}
+      summary: PATCH /api/users/{id}
       responses:
         "200":
           description: Successful response
@@ -213,13 +194,13 @@ paths:
             schema:
               type: object
       parameters:
-        - name: id@string
+        - name: id
           in: path
           required: true
           schema:
             type: string
     delete:
-      summary: DELETE /api/users/{id@string}
+      summary: DELETE /api/users/{id}
       responses:
         "200":
           description: Successful response
@@ -238,7 +219,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       parameters:
-        - name: id@string
+        - name: id
           in: path
           required: true
           schema:
