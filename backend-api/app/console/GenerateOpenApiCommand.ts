@@ -1,8 +1,7 @@
 import { Command } from '$/@frouvel/kaname/console/Command';
 import type { Application } from '$/@frouvel/kaname/foundation';
 import type { OpenApiGenerator } from '$/@frouvel/kaname/swagger/OpenApiGenerator';
-import { writeFileSync } from 'fs';
-import { join } from 'path';
+import { OpenApiSpecGenerator } from '$/@frouvel/kaname/generator/OpenApiSpecGenerator';
 
 export class GenerateOpenApiCommand extends Command {
   constructor(app: Application) {
@@ -15,46 +14,33 @@ export class GenerateOpenApiCommand extends Command {
       description: 'Generate OpenAPI specification file',
       options: [
         {
+          flags: '-f, --format <format>',
+          description: 'Output format: json|yaml (default: yaml)',
+        },
+        {
           flags: '-o, --output <path>',
-          description: 'Output file path (default: openapi.json)',
+          description: 'Output file path',
         },
       ],
     };
   }
 
-  async handle(options: { output?: string }) {
-    const generator = this.app.make<OpenApiGenerator>('swagger');
-
-    this.info('Generating OpenAPI specification...');
-    this.line(`Base path: ${this.app.basePath()}`);
-    this.line(`API path: ${join(this.app.basePath(), 'api')}`);
-
-    const spec = generator.generate();
-
-    // Log some diagnostic info
-    this.line(`\nGenerated spec info:`);
-    this.line(`- Title: ${spec.info.title}`);
-    this.line(`- Version: ${spec.info.version}`);
-    this.line(`- Paths count: ${Object.keys(spec.paths).length}`);
+  async handle(options?: { format?: string; output?: string }) {
+    const format = (options?.format || 'yaml') as 'json' | 'yaml';
     
-    if (Object.keys(spec.paths).length > 0) {
-      this.line(`\nDiscovered paths:`);
-      Object.keys(spec.paths).forEach((path) => {
-        this.line(`  ${path}`);
-      });
-    } else {
-      this.warn('\n⚠️  No paths discovered! Check:');
-      this.line(`  1. API directory exists at: ${join(this.app.basePath(), 'api')}`);
-      this.line(`  2. Routes have index.ts files with DefineMethods`);
+    if (format !== 'json' && format !== 'yaml') {
+      this.error(`Invalid format: ${format}. Use 'json' or 'yaml'`);
+      return;
     }
 
-    const outputPath =
-      options.output || join(this.app.basePath(), 'openapi.json');
+    const openApiGen = this.app.make<OpenApiGenerator>('swagger');
+    
+    const generator = new OpenApiSpecGenerator(openApiGen, {
+      basePath: this.app.basePath(),
+      format,
+      outputPath: options?.output,
+    });
 
-    const content = JSON.stringify(spec, null, 2);
-
-    writeFileSync(outputPath, content, 'utf-8');
-
-    this.success(`\n✓ OpenAPI spec generated: ${outputPath}`);
+    await generator.execute();
   }
 }

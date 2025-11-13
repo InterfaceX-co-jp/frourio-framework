@@ -137,26 +137,50 @@ export class OpenApiGenerator {
       // Parse JSDoc comments from the file
       const jsdocMap = this._parseJsDocFromFile(content);
 
-      // Extract methods from DefineMethods
-      const methodsMatch = content.match(/DefineMethods<\{([^}]+)\}>/s);
-      if (!methodsMatch) return;
+      // Extract methods from DefineMethods - handle nested braces
+      const defineMethodsIndex = content.indexOf('DefineMethods<{');
+      if (defineMethodsIndex === -1) return;
 
-      const methodsContent = methodsMatch[1];
+      // Find matching closing brace by counting
+      let braceCount = 0;
+      const startIndex = defineMethodsIndex + 'DefineMethods<{'.length;
+      let endIndex = startIndex;
+
+      for (let i = startIndex - 1; i < content.length; i++) {
+        if (content[i] === '{') braceCount++;
+        if (content[i] === '}') braceCount--;
+        if (braceCount === 0) {
+          endIndex = i;
+          break;
+        }
+      }
+
+      const methodsContent = content.substring(startIndex, endIndex);
       const methods = ['get', 'post', 'put', 'patch', 'delete'];
 
       for (const method of methods) {
-        const methodRegex = new RegExp(`${method}:\\s*\\{([^}]+)\\}`, 's');
-        const methodMatch = methodsContent.match(methodRegex);
+        // Find method definition with proper brace matching
+        const methodPattern = new RegExp(`${method}:\\s*\\{`, 'g');
+        const match = methodPattern.exec(methodsContent);
 
-        if (methodMatch) {
-          const methodDef = methodMatch[1];
+        if (match) {
+          // Find matching closing brace for this method
+          let braceCount = 1;
+          const startIdx = match.index + match[0].length;
+          let endIdx = startIdx;
+
+          for (let i = startIdx; i < methodsContent.length; i++) {
+            if (methodsContent[i] === '{') braceCount++;
+            if (methodsContent[i] === '}') braceCount--;
+            if (braceCount === 0) {
+              endIdx = i;
+              break;
+            }
+          }
+
+          const methodDef = methodsContent.substring(startIdx, endIdx);
           const jsDoc = jsdocMap.get(method);
-          const pathItem = this._createPathItem(
-            method,
-            methodDef,
-            path,
-            jsDoc,
-          );
+          const pathItem = this._createPathItem(method, methodDef, path, jsDoc);
 
           if (!spec.paths[path]) {
             spec.paths[path] = {};
@@ -185,26 +209,28 @@ export class OpenApiGenerator {
 
       // Find comments before method definitions
       const methods = ['get', 'post', 'put', 'patch', 'delete'];
-      
+
       for (const comment of comments) {
         // Extract method from the next code after comment
         const afterComment = content.slice(content.indexOf(comment.source));
-        
+
         for (const method of methods) {
           const methodPattern = new RegExp(
             `\\*\\/\\s*${method}\\s*:\\s*\\{`,
             's',
           );
-          
+
           if (methodPattern.test(afterComment.slice(0, 200))) {
-            const summaryTag = comment.tags.find((t: any) => t.tag === 'summary');
-            const descTag = comment.tags.find((t: any) => t.tag === 'description');
-            
+            const summaryTag = comment.tags.find(
+              (t: any) => t.tag === 'summary',
+            );
+            const descTag = comment.tags.find(
+              (t: any) => t.tag === 'description',
+            );
+
             const jsDoc: JsDocInfo = {
               summary:
-                summaryTag?.description ||
-                comment.description ||
-                undefined,
+                summaryTag?.description || comment.description || undefined,
               description: descTag?.description || undefined,
               tags: comment.tags
                 .filter((t: any) => t.tag === 'tag')
