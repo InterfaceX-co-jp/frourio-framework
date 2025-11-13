@@ -102,7 +102,7 @@ export default defineController(() => ({
   // Perfect for one-liner controller actions with complex validation
   patch: ({ body }) =>
     ApiResponseBuilder.create()
-      .withValidation(
+      .withZodValidation(
         body,
         z.object({
           name: z.string().min(1, '名前は必須です'),
@@ -146,7 +146,7 @@ export default defineController(() => ({
   // Use whichever reads better in your context
   options: ({ body }) =>
     ApiResponseBuilder.create()
-      .withValidation(
+      .withZodValidation(
         body,
         z.object({
           name: z.string().min(1, '名前は必須です'),

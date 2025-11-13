@@ -1,3 +1,4 @@
+import type { PrismaClient } from '@prisma/client';
 import { DatabaseManager } from './DatabaseManager';
 import type {
   DatabaseConfig,
@@ -6,27 +7,27 @@ import type {
 
 /**
  * DB Facade
- * 
+ *
  * Global singleton for database access with zero performance overhead.
  * Provides direct pass-through to Prisma/Drizzle clients.
- * 
+ *
  * @example
  * ```typescript
  * import { DB } from '$/@frouvel/kaname/database';
- * 
+ *
  * // Direct Prisma access (zero overhead)
  * const prisma = DB.prisma();
  * const users = await prisma.user.findMany({
  *   where: { age: { gt: 18 } },
  *   include: { posts: true }
  * });
- * 
+ *
  * // Transactions
  * await DB.transaction(async (prisma) => {
  *   await prisma.user.create({ data: { name: 'John' } });
  *   await prisma.profile.create({ data: { userId: 1 } });
  * });
- * 
+ *
  * // Multiple connections
  * const readReplica = DB.prisma('read-replica');
  * const analytics = DB.drizzle('analytics');
@@ -59,11 +60,11 @@ class DBFacade {
 
   /**
    * Register a pre-configured database client
-   * 
+   *
    * @example
    * ```typescript
    * import { PrismaClient } from '@prisma/client';
-   * 
+   *
    * const prisma = new PrismaClient();
    * DB.register('default', prisma, 'prisma');
    * ```
@@ -76,17 +77,18 @@ class DBFacade {
         connections: {},
       });
     }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.manager!.registerClient(name, client, driver);
   }
 
   /**
    * Get Prisma client for direct access (zero overhead)
-   * 
+   *
    * @example
    * ```typescript
    * const prisma = DB.prisma();
    * const users = await prisma.user.findMany();
-   * 
+   *
    * // Use Prisma's full API
    * const result = await prisma.user.findMany({
    *   where: { age: { gte: 18 } },
@@ -95,7 +97,7 @@ class DBFacade {
    * });
    * ```
    */
-  prisma<T = any>(connection?: string): T {
+  prisma<T = PrismaClient>(connection?: string): T {
     const client = this.getManager().prisma<T>(connection);
     if (!client) {
       const name = connection || this.getManager().getDefaultConnection();
@@ -108,12 +110,12 @@ class DBFacade {
 
   /**
    * Get Drizzle client for direct access (zero overhead)
-   * 
+   *
    * @example
    * ```typescript
    * const db = DB.drizzle();
    * const users = await db.select().from(usersTable);
-   * 
+   *
    * // Use Drizzle's full API
    * const result = await db
    *   .select()
@@ -135,7 +137,7 @@ class DBFacade {
 
   /**
    * Get the underlying database client (ORM-agnostic)
-   * 
+   *
    * @example
    * ```typescript
    * const client = DB.client();
@@ -148,7 +150,7 @@ class DBFacade {
 
   /**
    * Execute a function within a database transaction
-   * 
+   *
    * @example
    * ```typescript
    * // Prisma transaction
@@ -156,7 +158,7 @@ class DBFacade {
    *   const user = await prisma.user.create({ data: { name: 'John' } });
    *   await prisma.profile.create({ data: { userId: user.id } });
    * });
-   * 
+   *
    * // Drizzle transaction
    * await DB.transaction(async (tx) => {
    *   await tx.insert(users).values({ name: 'John' });
@@ -180,7 +182,7 @@ class DBFacade {
 
   /**
    * Disconnect from all database connections
-   * 
+   *
    * @example
    * ```typescript
    * // In your app shutdown handler
@@ -210,13 +212,13 @@ class DBFacade {
 
   /**
    * Set the default connection
-   * 
+   *
    * @example
    * ```typescript
    * // Switch to read replica for read-heavy operations
    * DB.setDefaultConnection('read-replica');
    * const users = DB.prisma().user.findMany();
-   * 
+   *
    * // Switch back to primary
    * DB.setDefaultConnection('primary');
    * ```
@@ -236,13 +238,13 @@ class DBFacade {
 
 /**
  * Global DB Facade instance
- * 
+ *
  * Import this in your code to access database functionality.
- * 
+ *
  * @example
  * ```typescript
  * import { DB } from '$/@frouvel/kaname/database';
- * 
+ *
  * const users = await DB.prisma().user.findMany();
  * ```
  */

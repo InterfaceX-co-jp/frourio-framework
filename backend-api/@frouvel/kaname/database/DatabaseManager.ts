@@ -3,6 +3,8 @@ import type {
   ConnectionConfig,
 } from './contracts/DatabaseManager.interface';
 import type { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from './PrismaClientManager';
+import { getDrizzleClient } from './DrizzleClientManager';
 
 /**
  * Database Manager
@@ -237,13 +239,8 @@ export class DatabaseManager implements IDatabaseManager {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private createPrismaClient(config: ConnectionConfig): any {
-    // Dynamic import to avoid bundling Prisma if not used
     try {
-      // In actual implementation, this would be the real Prisma client
-      // For now, we'll throw an error to indicate it needs to be provided
-      throw new Error(
-        'Prisma client must be registered using registerClient() or provided via dependency injection',
-      );
+      return getPrismaClient();
     } catch (error) {
       throw new Error(`Failed to create Prisma client: ${error}`);
     }
@@ -252,14 +249,13 @@ export class DatabaseManager implements IDatabaseManager {
   /**
    * Create Drizzle client
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private createDrizzleClient(config: ConnectionConfig): any {
-    // Dynamic import to avoid bundling Drizzle if not used
     try {
-      // In actual implementation, this would create a Drizzle client
-      throw new Error(
-        'Drizzle client must be registered using registerClient() or provided via dependency injection',
-      );
+      const connectionString = config.url;
+      if (!connectionString) {
+        throw new Error('Drizzle connection URL is required in config');
+      }
+      return getDrizzleClient(connectionString);
     } catch (error) {
       throw new Error(`Failed to create Drizzle client: ${error}`);
     }

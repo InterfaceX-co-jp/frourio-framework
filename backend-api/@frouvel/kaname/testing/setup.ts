@@ -96,13 +96,13 @@ export function setupTestEnvironment(options: TestEnvironmentOptions = {}) {
     // Run migrations once
     if (runMigrations && !isMigrated) {
       try {
-        await execPromise('npx prisma migrate deploy');
+        await execPromise('npx prisma migrate deploy --schema=./database/prisma/schema.prisma');
         isMigrated = true;
       } catch (error) {
         console.error('Migration failed:', error);
         console.log('Resetting test database...');
         try {
-          await execPromise('npx prisma migrate reset --force');
+          await execPromise('npx prisma migrate reset --force --schema=./database/prisma/schema.prisma');
           isMigrated = true;
         } catch (resetError) {
           console.error('Database reset failed:', resetError);

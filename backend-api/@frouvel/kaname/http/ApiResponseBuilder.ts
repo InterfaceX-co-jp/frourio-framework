@@ -45,14 +45,14 @@ export class ApiResponseBuilder<T = unknown> {
    * @example
    * ```typescript
    * return ApiResponseBuilder.create()
-   *   .withValidation(body, userSchema)
+   *   .withZodValidation(body, userSchema)
    *   .handle((data) => {
    *     if (data.age < 18) return ApiResponse.forbidden('未成年は登録できません');
    *     return ApiResponse.success(data);
    *   });
    * ```
    */
-  withValidation<S extends z.ZodType>(
+  withZodValidation<S extends z.ZodType>(
     data: unknown,
     schema: S,
   ): ApiResponseBuilder<z.infer<S>> {
