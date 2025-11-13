@@ -365,8 +365,10 @@ export const ApiResponse = {
   },
 } as const;
 
-// Export ResponseBuilder
-export { ResponseBuilder } from './ResponseBuilder';
+// Export ApiResponseBuilder
+export { ApiResponseBuilder } from './ApiResponseBuilder';
+// Keep ResponseBuilder as deprecated alias for backward compatibility
+export { ApiResponseBuilder as ResponseBuilder } from './ApiResponseBuilder';
 
 // Export types
 export type {
