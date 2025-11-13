@@ -561,7 +561,7 @@ export class UserRepository implements IUserRepository {
 
 ```ts
 import { IUserRepository, UserRepository } from '../repository/User.repository';
-import { getPrismaClient } from '$/service/getPrismaClient';
+import { getPrismaClient } from '$/@frouvel/kaname/database';
 
 export interface IValidateUserAgeService {
   handleByAge: (args: { age: number }) => Promise<boolean>;
@@ -605,7 +605,7 @@ export class ValidateUserAgeService implements IValidateUserAgeService {
 
 ```ts
 import { NotFoundError } from '$/@frouvel/kaname/error/CommonErrors';
-import { getPrismaClient } from '$/service/getPrismaClient';
+import { getPrismaClient } from '$/@frouvel/kaname/database';
 import { IUserRepository, UserRepository } from '../repository/User.repository';
 
 export class FindUserUseCase {
@@ -637,7 +637,7 @@ export class FindUserUseCase {
 
 ```ts
 import { ValidationError } from '$/@frouvel/kaname/error/CommonErrors';
-import { getPrismaClient } from '$/service/getPrismaClient';
+import { getPrismaClient } from '$/@frouvel/kaname/database';
 import { IUserRepository, UserRepository } from '../repository/User.repository';
 import { IValidateUserAgeService, ValidateUserAgeService } from '../service/ValidateUserAge.service';
 
@@ -682,6 +682,124 @@ export class CreateUserUseCase {
     return user.toDto();
   }
 }
+```
+
+## Dependency Injection with Application Container
+
+The framework provides a Laravel-style Application container for proper dependency injection. This is the **recommended approach** for accessing Prisma and other services.
+
+### Accessing Application in Controllers
+
+Controllers can access the Application container through the Fastify instance using helper functions:
+
+```ts
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
+import { getApp, getPrisma } from '$/@frouvel/kaname/foundation';
+import { FindUserUseCase } from '$/domain/user/usecase/FindUser.usecase';
+import { defineController } from './$relay';
+
+export default defineController((fastify) => ({
+  get: ({ params }) => {
+    const app = getApp(fastify);  // Get Application container
+    
+    return FindUserUseCase.create(app)
+      .handleById({ id: params.id })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get);
+  },
+}));
+```
+
+**Alternative: Direct Prisma access**
+
+```ts
+import { getPrisma } from '$/@frouvel/kaname/foundation';
+import { defineController } from './$relay';
+
+export default defineController((fastify) => ({
+  get: () => {
+    const prisma = getPrisma(fastify);  // Direct Prisma access
+    // Use for simple queries without UseCase
+  },
+}));
+```
+
+### Container-Based UseCase Pattern
+
+UseCases should receive the Application instance to access container-registered services:
+
+```ts
+import { NotFoundError } from '$/@frouvel/kaname/error/CommonErrors';
+import type { Application } from '$/@frouvel/kaname/foundation';
+import type { PrismaClient } from '@prisma/client';
+import { IUserRepository, UserRepository } from '../repository/User.repository';
+
+export class FindUserUseCase {
+  private readonly _userRepository: IUserRepository;
+
+  private constructor(args: { userRepository: IUserRepository }) {
+    this._userRepository = args.userRepository;
+  }
+
+  static create(app: Application) {
+    const prisma = app.make<PrismaClient>('prisma');
+    return new FindUserUseCase({
+      userRepository: new UserRepository(prisma),
+    });
+  }
+
+  async handleById(args: { id: number }) {
+    const user = await this._userRepository.findById({ id: args.id });
+
+    if (!user) {
+      throw NotFoundError.create(`User with ID ${args.id} not found`, {
+        userId: args.id,
+      });
+    }
+
+    return user.toDto();
+  }
+}
+```
+
+### Legacy Pattern (Not Recommended)
+
+The old pattern using `getPrismaClient()` directly still works but bypasses the container:
+
+```ts
+import { getPrismaClient } from '$/@frouvel/kaname/database';
+
+// ❌ Bypasses container - avoid in new code
+static create() {
+  return new FindUserUseCase({
+    userRepository: new UserRepository(getPrismaClient()),
+  });
+}
+```
+
+**Why avoid this?**
+- Bypasses the Application container
+- Harder to test (can't mock via container)
+- Inconsistent with framework architecture
+- Breaks the dependency injection pattern
+
+### Container-Registered Services
+
+The following services are available via the container:
+
+- `prisma` - [`PrismaClient`](backend-api/@frouvel/kaname/database/PrismaClientManager.ts) instance
+- `app` - Application instance itself
+- `HttpKernel` - HTTP request handler
+- `ConsoleKernel` - Console command handler
+- `fastify` - Fastify instance (when running HTTP server)
+- `config` - Configuration object (after LoadConfiguration bootstrapper)
+
+Example:
+
+```ts
+const app = getApp(fastify);
+const prisma = app.make<PrismaClient>('prisma');
+const config = app.make<Record<string, any>>('config');
 ```
 
 ## Best Practices Summary

@@ -108,10 +108,14 @@ export class HttpKernel extends Kernel {
     // Set up error handler
     this.setupErrorHandler(app);
 
+    // Attach Application instance to Fastify for DI access
+    app.decorate('app', this._app);
+
     // Register routes via Frourio
     server(app, { basePath: process.env.API_BASE_PATH });
 
     console.log('[HttpKernel] Fastify instance configured');
+    console.log('[HttpKernel] Application instance attached to Fastify');
 
     return app;
   }
