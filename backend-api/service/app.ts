@@ -1,11 +1,15 @@
-import server from "$/$server";
-import cookie from "@fastify/cookie";
-import cors from "@fastify/cors";
-import helmet from "@fastify/helmet";
-import jwt from "@fastify/jwt";
-import { config } from "dotenv";
-import type { FastifyServerFactory } from "fastify";
-import Fastify from "fastify";
+import server from '$/$server';
+import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import jwt from '@fastify/jwt';
+import { config } from 'dotenv';
+import type { FastifyServerFactory } from 'fastify';
+import Fastify from 'fastify';
+import { env } from '$/env';
+import { CORS_ORIGINS } from '$/config/cors';
+import { AbstractFrourioFrameworkError } from '$/@frouvel/kaname/error/FrourioFrameworkError';
+import { PROBLEM_DETAILS_MEDIA_TYPE } from '$/@frouvel/kaname/http/ApiResponse';
 
 config();
 
@@ -19,25 +23,54 @@ export const init = (serverFactory?: FastifyServerFactory) => {
   //   profilesSampleRate: 1.0,
   // });
 
+  console.log(`Application running in ${env.NODE_ENV} mode.`);
+
   const app = Fastify({
     maxParamLength: 1000, // This defaults to 100: returns 404 error params surpass this length
     ...serverFactory,
-    logger: true,
+    logger:
+      env.NODE_ENV === 'production'
+        ? true // Defualt log
+        : {
+            level: 'info',
+            // Using a simpler logger configuration to avoid worker thread issues
+            transport: {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+                translateTime: 'SYS:standard',
+                ignore: 'pid,hostname',
+              },
+            },
+          },
   });
 
-  const CORS_ORIGINS = [
-    "http://localhost:3000",
-    // 'https://main.d3hd8kguh00tqy.amplifyapp.com',
-    // /https:\/\/pr-\d+\.d3hd8kguh00tqy\.amplifyapp\.com/,
-    // 'https://live-stg.aliveland.io',
-    // 'https://live.aliveland.io',
-  ];
-
   app.register(helmet);
-  app.register(cors, { origin: CORS_ORIGINS, credentials: true });
+  app.register(cors, {
+    origin: CORS_ORIGINS,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   app.register(cookie);
-  app.register(jwt, { secret: process.env.API_JWT_SECRET ?? "" });
+  app.register(jwt, { secret: process.env.API_JWT_SECRET ?? '' });
 
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof AbstractFrourioFrameworkError) {
+      console.error({
+        error,
+        requestId: request.id,
+        body: request.body,
+        params: request.params,
+        query: request.query,
+      });
+
+      reply
+        .status(error.httpStatusCode)
+        .header('Content-Type', PROBLEM_DETAILS_MEDIA_TYPE)
+        .send(error.toProblemDetails());
+    }
+  });
   server(app, { basePath: process.env.API_BASE_PATH });
 
   return app;

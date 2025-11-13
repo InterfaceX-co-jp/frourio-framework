@@ -1,0 +1,4 @@
+# Cache Directory
+
+This directory will contain cached configuration and other bootstrap cache files.
+Cache files are generated during deployment or when running cache commands.
