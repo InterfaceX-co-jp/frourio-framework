@@ -1,6 +1,7 @@
 import { DatabaseTestCase } from './DatabaseTestCase';
 import type { FastifyInstance } from 'fastify';
-import { init } from '$/service/app';
+import app from '$/bootstrap/app';
+import type { HttpKernel } from '$/@frouvel/kaname/foundation';
 import { env } from '$/env';
 
 /**
@@ -25,7 +26,8 @@ export abstract class IntegrationTestCase extends DatabaseTestCase {
   protected async setUpBeforeClass(): Promise<void> {
     await super.setUpBeforeClass();
 
-    this.server = init();
+    const kernel = app.make<HttpKernel>('HttpKernel');
+    this.server = await kernel.handle();
     await this.server.listen({
       port: IntegrationTestCase.testPort,
       host: '0.0.0.0',
