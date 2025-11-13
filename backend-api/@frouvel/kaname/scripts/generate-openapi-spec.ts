@@ -41,6 +41,7 @@ async function main() {
         },
       ],
       basePath,
+      apiBasePath: process.env.API_BASE_PATH || '',
     },
     basePath,
   );

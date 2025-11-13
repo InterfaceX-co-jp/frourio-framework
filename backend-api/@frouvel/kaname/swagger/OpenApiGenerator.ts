@@ -32,11 +32,13 @@ export interface OpenApiGeneratorOptions {
   description?: string;
   servers?: OpenAPIV3.ServerObject[];
   basePath?: string;
+  apiBasePath?: string; // e.g., '/api'
 }
 
 export class OpenApiGenerator {
   private readonly _options: OpenApiGeneratorOptions;
   private readonly _basePath: string;
+  private readonly _apiBasePath: string;
 
   private constructor(args: {
     options: OpenApiGeneratorOptions;
@@ -44,6 +46,7 @@ export class OpenApiGenerator {
   }) {
     this._options = args.options;
     this._basePath = args.basePath;
+    this._apiBasePath = args.options.apiBasePath || '';
   }
 
   static create(options: OpenApiGeneratorOptions, basePath: string) {
@@ -69,7 +72,41 @@ export class OpenApiGenerator {
       ],
       paths: {},
       components: {
-        schemas: {},
+        schemas: {
+          ProblemDetails: {
+            type: 'object',
+            description: 'RFC9457 Problem Details for HTTP APIs',
+            required: ['type', 'title', 'status', 'detail'],
+            properties: {
+              type: {
+                type: 'string',
+                description: 'A URI reference that identifies the problem type',
+                example: 'about:blank',
+              },
+              title: {
+                type: 'string',
+                description: 'A short, human-readable summary of the problem type',
+                example: 'Not Found',
+              },
+              status: {
+                type: 'integer',
+                description: 'The HTTP status code',
+                example: 404,
+              },
+              detail: {
+                type: 'string',
+                description: 'A human-readable explanation specific to this occurrence',
+                example: 'The requested resource was not found',
+              },
+              instance: {
+                type: 'string',
+                description: 'A URI reference that identifies the specific occurrence',
+                example: '/api/users/123',
+              },
+            },
+            additionalProperties: true,
+          },
+        },
         securitySchemes: {
           bearerAuth: {
             type: 'http',
@@ -82,7 +119,7 @@ export class OpenApiGenerator {
 
     // Scan api directory and generate paths
     const apiPath = join(this._basePath, 'api');
-    this._scanApiDirectory(apiPath, spec, '');
+    this._scanApiDirectory(apiPath, spec, this._apiBasePath);
 
     return spec;
   }

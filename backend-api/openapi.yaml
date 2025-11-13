@@ -7,9 +7,9 @@ servers:
   - url: http://localhost:31577
     description: Development
 paths:
-  /example/error/rfc9457:
+  /api/example/error/rfc9457:
     get:
-      summary: GET /example/error/rfc9457
+      summary: GET /api/example/error/rfc9457
       responses:
         "200":
           description: Successful response
@@ -36,7 +36,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
     post:
-      summary: POST /example/error/rfc9457
+      summary: POST /api/example/error/rfc9457
       responses:
         "200":
           description: Successful response
@@ -69,7 +69,7 @@ paths:
             schema:
               type: object
     put:
-      summary: PUT /example/error/rfc9457
+      summary: PUT /api/example/error/rfc9457
       responses:
         "200":
           description: Successful response
@@ -102,7 +102,7 @@ paths:
             schema:
               type: object
     patch:
-      summary: PATCH /example/error/rfc9457
+      summary: PATCH /api/example/error/rfc9457
       responses:
         "200":
           description: Successful response
@@ -135,7 +135,7 @@ paths:
             schema:
               type: object
     delete:
-      summary: DELETE /example/error/rfc9457
+      summary: DELETE /api/example/error/rfc9457
       responses:
         "200":
           description: Successful response
@@ -161,9 +161,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-  /health:
+  /api/health:
     get:
-      summary: GET /health
+      summary: GET /api/health
       responses:
         "200":
           description: Successful response
@@ -189,9 +189,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-  /:
+  /api:
     get:
-      summary: GET /
+      summary: GET /api
       responses:
         "200":
           description: Successful response
@@ -217,9 +217,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-  /users/[id]:
+  /api/users/[id]:
     get:
-      summary: GET /users/[id]
+      summary: GET /api/users/[id]
       responses:
         "200":
           description: Successful response
@@ -246,7 +246,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
     patch:
-      summary: PATCH /users/[id]
+      summary: PATCH /api/users/[id]
       responses:
         "200":
           description: Successful response
@@ -279,7 +279,7 @@ paths:
             schema:
               type: object
     delete:
-      summary: DELETE /users/[id]
+      summary: DELETE /api/users/[id]
       responses:
         "200":
           description: Successful response
@@ -305,9 +305,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-  /users:
+  /api/users:
     get:
-      summary: GET /users
+      summary: GET /api/users
       responses:
         "200":
           description: Successful response
@@ -345,7 +345,7 @@ paths:
           schema:
             type: number
     post:
-      summary: POST /users
+      summary: POST /api/users
       responses:
         "200":
           description: Successful response
@@ -378,7 +378,37 @@ paths:
             schema:
               type: object
 components:
-  schemas: {}
+  schemas:
+    ProblemDetails:
+      type: object
+      description: RFC9457 Problem Details for HTTP APIs
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type
+          example: about:blank
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type
+          example: Not Found
+        status:
+          type: integer
+          description: The HTTP status code
+          example: 404
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence
+          example: The requested resource was not found
+        instance:
+          type: string
+          description: A URI reference that identifies the specific occurrence
+          example: /api/users/123
+      additionalProperties: true
   securitySchemes:
     bearerAuth:
       type: http
