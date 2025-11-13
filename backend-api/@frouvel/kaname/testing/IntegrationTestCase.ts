@@ -1,0 +1,242 @@
+import { DatabaseTestCase } from './DatabaseTestCase';
+import type { FastifyInstance } from 'fastify';
+import { init } from '$/service/app';
+import { env } from '$/env';
+
+/**
+ * IntegrationTestCase provides full integration testing with server and database
+ * Automatically starts a test server and manages database lifecycle
+ */
+export abstract class IntegrationTestCase extends DatabaseTestCase {
+  protected declare server: FastifyInstance;
+  protected baseURL: string;
+  private static testPort: number;
+
+  constructor() {
+    super();
+    // Use a different port for each test run to avoid conflicts
+    IntegrationTestCase.testPort = env.API_SERVER_PORT + 11;
+    this.baseURL = `http://localhost:${IntegrationTestCase.testPort}`;
+  }
+
+  /**
+   * Start the test server
+   */
+  protected async setUpBeforeClass(): Promise<void> {
+    await super.setUpBeforeClass();
+
+    this.server = init();
+    await this.server.listen({
+      port: IntegrationTestCase.testPort,
+      host: '0.0.0.0',
+    });
+  }
+
+  /**
+   * Close the test server
+   */
+  protected async tearDownAfterClass(): Promise<void> {
+    if (this.server) {
+      await this.server.close();
+    }
+    await super.tearDownAfterClass();
+  }
+
+  /**
+   * Make a GET request to the test server
+   */
+  protected async get(
+    path: string,
+    headers?: Record<string, string>,
+  ): Promise<any> {
+    const response = await this.server.inject({
+      method: 'GET',
+      url: path,
+      headers,
+    });
+    
+    let body;
+    try {
+      body = response.json();
+    } catch {
+      body = response.body;
+    }
+    
+    return {
+      status: response.statusCode,
+      body,
+      headers: response.headers,
+    };
+  }
+
+  /**
+   * Make a POST request to the test server
+   */
+  protected async post(
+    path: string,
+    body?: any,
+    headers?: Record<string, string>,
+  ): Promise<any> {
+    const response = await this.server.inject({
+      method: 'POST',
+      url: path,
+      payload: body,
+      headers: {
+        'content-type': 'application/json',
+        ...headers,
+      },
+    });
+    
+    let responseBody;
+    try {
+      responseBody = response.json();
+    } catch {
+      responseBody = response.body;
+    }
+    
+    return {
+      status: response.statusCode,
+      body: responseBody,
+      headers: response.headers,
+    };
+  }
+
+  /**
+   * Make a PUT request to the test server
+   */
+  protected async put(
+    path: string,
+    body?: any,
+    headers?: Record<string, string>,
+  ): Promise<any> {
+    const response = await this.server.inject({
+      method: 'PUT',
+      url: path,
+      payload: body,
+      headers: {
+        'content-type': 'application/json',
+        ...headers,
+      },
+    });
+    
+    let responseBody;
+    try {
+      responseBody = response.json();
+    } catch {
+      responseBody = response.body;
+    }
+    
+    return {
+      status: response.statusCode,
+      body: responseBody,
+      headers: response.headers,
+    };
+  }
+
+  /**
+   * Make a PATCH request to the test server
+   */
+  protected async patch(
+    path: string,
+    body?: any,
+    headers?: Record<string, string>,
+  ): Promise<any> {
+    const response = await this.server.inject({
+      method: 'PATCH',
+      url: path,
+      payload: body,
+      headers: {
+        'content-type': 'application/json',
+        ...headers,
+      },
+    });
+    
+    let responseBody;
+    try {
+      responseBody = response.json();
+    } catch {
+      responseBody = response.body;
+    }
+    
+    return {
+      status: response.statusCode,
+      body: responseBody,
+      headers: response.headers,
+    };
+  }
+
+  /**
+   * Make a DELETE request to the test server
+   */
+  protected async delete(
+    path: string,
+    headers?: Record<string, string>,
+  ): Promise<any> {
+    const response = await this.server.inject({
+      method: 'DELETE',
+      url: path,
+      headers,
+    });
+    
+    let body;
+    try {
+      body = response.json();
+    } catch {
+      body = response.body;
+    }
+    
+    return {
+      status: response.statusCode,
+      body,
+      headers: response.headers,
+    };
+  }
+
+  /**
+   * Create an authorization header with JWT token
+   */
+  protected authHeader(token: string): Record<string, string> {
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  /**
+   * Assert response status
+   */
+  protected assertStatus(response: any, expected: number): void {
+    if (response.status !== expected) {
+      throw new Error(
+        `Expected status ${expected} but got ${response.status}. Body: ${JSON.stringify(response.body, null, 2)}`,
+      );
+    }
+  }
+
+  /**
+   * Assert response is successful (2xx)
+   */
+  protected assertOk(response: any): void {
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error(
+        `Expected successful response but got ${response.status}. Body: ${JSON.stringify(response.body, null, 2)}`,
+      );
+    }
+  }
+
+  /**
+   * Assert response contains expected data
+   */
+  protected assertResponseContains(
+    response: any,
+    expected: Record<string, any>,
+  ): void {
+    const body = response.body;
+    for (const [key, value] of Object.entries(expected)) {
+      if (body[key] !== value) {
+        throw new Error(
+          `Expected ${key} to be ${value} but got ${body[key]}`,
+        );
+      }
+    }
+  }
+}
