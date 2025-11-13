@@ -54,6 +54,7 @@
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "commander": "^14.0.2",
+    "comment-parser": "^1.4.1",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.1",

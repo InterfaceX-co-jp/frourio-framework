@@ -5,12 +5,26 @@
  *
  * Generates OpenAPI 3.0 specification from aspida type definitions.
  * Uses the existing aspida/frourio structure to auto-generate documentation.
+ * Supports JSDoc comments for enhanced documentation.
  */
 
 import type { FastifyInstance } from 'fastify';
 import type { OpenAPIV3 } from 'openapi-types';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
+import { parse as parseComments } from 'comment-parser';
+
+interface JsDocInfo {
+  summary?: string;
+  description?: string;
+  tags?: string[];
+  deprecated?: boolean;
+  params?: Array<{
+    name: string;
+    description?: string;
+    type?: string;
+  }>;
+}
 
 export interface OpenApiGeneratorOptions {
   title: string;
@@ -110,7 +124,7 @@ export class OpenApiGenerator {
   }
 
   /**
-   * Parse route file and extract type definitions
+   * Parse route file and extract type definitions with JSDoc comments
    */
   private _parseRouteFile(
     filePath: string,
@@ -119,6 +133,9 @@ export class OpenApiGenerator {
   ): void {
     try {
       const content = readFileSync(filePath, 'utf-8');
+
+      // Parse JSDoc comments from the file
+      const jsdocMap = this._parseJsDocFromFile(content);
 
       // Extract methods from DefineMethods
       const methodsMatch = content.match(/DefineMethods<\{([^}]+)\}>/s);
@@ -133,7 +150,13 @@ export class OpenApiGenerator {
 
         if (methodMatch) {
           const methodDef = methodMatch[1];
-          const pathItem = this._createPathItem(method, methodDef, path);
+          const jsDoc = jsdocMap.get(method);
+          const pathItem = this._createPathItem(
+            method,
+            methodDef,
+            path,
+            jsDoc,
+          );
 
           if (!spec.paths[path]) {
             spec.paths[path] = {};
@@ -149,15 +172,79 @@ export class OpenApiGenerator {
   }
 
   /**
-   * Create OpenAPI path item from method definition
+   * Parse JSDoc comments from file content
+   */
+  private _parseJsDocFromFile(content: string): Map<string, JsDocInfo> {
+    const jsdocMap = new Map<string, JsDocInfo>();
+
+    try {
+      // Parse all JSDoc comments
+      const comments = parseComments(content, {
+        spacing: 'preserve',
+      });
+
+      // Find comments before method definitions
+      const methods = ['get', 'post', 'put', 'patch', 'delete'];
+      
+      for (const comment of comments) {
+        // Extract method from the next code after comment
+        const afterComment = content.slice(content.indexOf(comment.source));
+        
+        for (const method of methods) {
+          const methodPattern = new RegExp(
+            `\\*\\/\\s*${method}\\s*:\\s*\\{`,
+            's',
+          );
+          
+          if (methodPattern.test(afterComment.slice(0, 200))) {
+            const summaryTag = comment.tags.find((t: any) => t.tag === 'summary');
+            const descTag = comment.tags.find((t: any) => t.tag === 'description');
+            
+            const jsDoc: JsDocInfo = {
+              summary:
+                summaryTag?.description ||
+                comment.description ||
+                undefined,
+              description: descTag?.description || undefined,
+              tags: comment.tags
+                .filter((t: any) => t.tag === 'tag')
+                .map((t: any) => t.name),
+              deprecated: comment.tags.some((t: any) => t.tag === 'deprecated'),
+              params: comment.tags
+                .filter((t: any) => t.tag === 'param')
+                .map((t: any) => ({
+                  name: t.name,
+                  description: t.description,
+                  type: t.type,
+                })),
+            };
+
+            jsdocMap.set(method, jsDoc);
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error parsing JSDoc comments:', error);
+    }
+
+    return jsdocMap;
+  }
+
+  /**
+   * Create OpenAPI path item from method definition with JSDoc info
    */
   private _createPathItem(
     method: string,
     methodDef: string,
     path: string,
+    jsDoc?: JsDocInfo,
   ): OpenAPIV3.OperationObject {
     const operation: OpenAPIV3.OperationObject = {
-      summary: `${method.toUpperCase()} ${path}`,
+      summary: jsDoc?.summary || `${method.toUpperCase()} ${path}`,
+      description: jsDoc?.description,
+      tags: jsDoc?.tags && jsDoc.tags.length > 0 ? jsDoc.tags : undefined,
+      deprecated: jsDoc?.deprecated || undefined,
       responses: {
         '200': {
           description: 'Successful response',
