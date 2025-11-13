@@ -107,6 +107,58 @@ export class OpenApiGenerator {
             additionalProperties: true,
           },
         },
+        responses: {
+          BadRequest: {
+            description: 'Bad Request - Invalid input or validation error',
+            content: {
+              'application/problem+json': {
+                schema: {
+                  $ref: '#/components/schemas/ProblemDetails',
+                },
+              },
+            },
+          },
+          Unauthorized: {
+            description: 'Unauthorized - Authentication required',
+            content: {
+              'application/problem+json': {
+                schema: {
+                  $ref: '#/components/schemas/ProblemDetails',
+                },
+              },
+            },
+          },
+          Forbidden: {
+            description: 'Forbidden - Insufficient permissions',
+            content: {
+              'application/problem+json': {
+                schema: {
+                  $ref: '#/components/schemas/ProblemDetails',
+                },
+              },
+            },
+          },
+          NotFound: {
+            description: 'Not Found - Resource does not exist',
+            content: {
+              'application/problem+json': {
+                schema: {
+                  $ref: '#/components/schemas/ProblemDetails',
+                },
+              },
+            },
+          },
+          InternalServerError: {
+            description: 'Internal Server Error - Unexpected server error',
+            content: {
+              'application/problem+json': {
+                schema: {
+                  $ref: '#/components/schemas/ProblemDetails',
+                },
+              },
+            },
+          },
+        },
         securitySchemes: {
           bearerAuth: {
             type: 'http',
@@ -318,34 +370,19 @@ export class OpenApiGenerator {
           },
         },
         '400': {
-          description: 'Bad Request',
-          content: {
-            'application/problem+json': {
-              schema: {
-                $ref: '#/components/schemas/ProblemDetails',
-              },
-            },
-          },
+          $ref: '#/components/responses/BadRequest',
+        },
+        '401': {
+          $ref: '#/components/responses/Unauthorized',
+        },
+        '403': {
+          $ref: '#/components/responses/Forbidden',
         },
         '404': {
-          description: 'Not Found',
-          content: {
-            'application/problem+json': {
-              schema: {
-                $ref: '#/components/schemas/ProblemDetails',
-              },
-            },
-          },
+          $ref: '#/components/responses/NotFound',
         },
         '500': {
-          description: 'Internal Server Error',
-          content: {
-            'application/problem+json': {
-              schema: {
-                $ref: '#/components/schemas/ProblemDetails',
-              },
-            },
-          },
+          $ref: '#/components/responses/InternalServerError',
         },
       },
     };
