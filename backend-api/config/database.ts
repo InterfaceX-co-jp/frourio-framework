@@ -40,8 +40,8 @@ export default databaseConfigSchema.parse({
     },
   },
   pool: {
-    min: parseInt(process.env.DB_POOL_MIN || '2'),
-    max: parseInt(process.env.DB_POOL_MAX || '10'),
+    min: Number(process.env.DB_POOL_MIN || 2),
+    max: Number(process.env.DB_POOL_MAX || 10),
   },
   migrations: {
     tableName: process.env.DB_MIGRATIONS_TABLE || 'migrations',

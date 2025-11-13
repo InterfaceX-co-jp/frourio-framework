@@ -21,7 +21,7 @@ export type AppConfig = z.infer<typeof appConfigSchema>;
 export default appConfigSchema.parse({
   name: process.env.APP_NAME || 'Frourio Framework',
   env: process.env.NODE_ENV || 'development',
-  debug: process.env.APP_DEBUG === 'true',
+  debug: String(process.env.APP_DEBUG) === 'true',
   url: process.env.APP_URL || 'http://localhost:8080',
   timezone: process.env.TZ || 'UTC',
   locale: process.env.APP_LOCALE || 'en',
