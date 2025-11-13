@@ -4,9 +4,9 @@ This guide explains how to add Swagger/OpenAPI documentation to your frourio-fra
 
 ## Current Status
 
-The Swagger infrastructure is in place and working. The system automatically scans your `api/` directory and generates OpenAPI documentation. However, the current implementation provides **basic automatic generation**.
+The Swagger infrastructure is **fully functional** with advanced features. The system automatically scans your `api/` directory, generates OpenAPI documentation, and supports **JSDoc comments** for enhanced documentation and **custom tag descriptions** for better organization.
 
-## How It Works Now
+## How It Works
 
 ### Automatic Documentation
 
@@ -18,13 +18,20 @@ The system automatically:
      index.ts           → GET /
      health/
        index.ts         → GET /health
-     example-rfc9457/
-       index.ts         → GET,POST,PUT,DELETE,PATCH /example-rfc9457
+     users/
+       index.ts         → GET,POST /users
+       _id@string/
+         index.ts       → GET,PUT,DELETE /users/{id}
    ```
 
-2. **Extracts Types** from your aspida definitions:
+2. **Extracts Types & JSDoc** from your aspida definitions:
    ```typescript
    // api/health/index.ts
+   /**
+    * Health check endpoint
+    * @description Returns server health status
+    * @tag Health
+    */
    export type Methods = DefineMethods<{
      get: {
        resBody: string;
@@ -32,189 +39,141 @@ The system automatically:
    }>;
    ```
 
-3. **Generates Basic OpenAPI Spec** with:
-   - Route paths
+3. **Generates Complete OpenAPI Spec** with:
+   - Route paths and parameters
    - HTTP methods
    - Request/response types
+   - JSDoc summaries and descriptions
+   - Tag grouping with custom descriptions
    - RFC9457 error schemas
 
-## Current API Documentation
+## Accessing API Documentation
 
-### Your APIs are Already Documented!
+### Interactive Swagger UI
 
 Access your current API documentation at:
 - **Swagger UI**: http://localhost:31577/api-docs
 - **OpenAPI JSON**: http://localhost:31577/api-docs/json
 
-### Example: Health Check API
+### Generate Spec Files
 
-Your health check endpoint is automatically documented:
+Create standalone OpenAPI specification files:
 
-```yaml
-/health:
-  get:
-    summary: GET /health
-    responses:
-      200:
-        description: Successful response
-        content:
-          application/json:
-            schema:
-              type: string
-      400/404/500:
-        description: Error responses (ProblemDetails)
+```bash
+# Generate YAML file (default)
+npm run artisan openapi:generate
+
+# Generate JSON file
+npm run artisan openapi:generate -f json
+
+# Custom output path
+npm run artisan openapi:generate -o ./docs/openapi.yaml
 ```
 
-### Example: RFC9457 Example API
+Use these files with:
+- API testing tools (Postman, Insomnia)
+- Client SDK generators
+- API gateways
+- Documentation hosting platforms
 
-Your example endpoint with complex types:
+## Adding Rich Documentation
 
-```yaml
-/example-rfc9457:
-  post:
-    summary: POST /example-rfc9457
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              simulateNotFound:
-                type: boolean
-              simulateValidation:
-                type: boolean
-              resourceId:
-                type: string
-    responses:
-      200:
-        description: Successful response
-```
+### JSDoc Comments (Fully Supported!)
 
-## How to Add Better Documentation
-
-### Option 1: JSDoc Comments (Recommended for Future Enhancement)
-
-Add JSDoc comments to your type definitions:
+Add JSDoc comments to enhance your API documentation:
 
 ```typescript
 // api/users/index.ts
 import type { DefineMethods } from 'aspida';
-import type { ProblemDetails } from 'commonTypesWithClient';
+import type { UserModelDto, ProblemDetails } from 'commonTypesWithClient';
 
 /**
- * User Management API
- * 
- * Handles user CRUD operations
+ * List all users
+ * @description Returns a paginated list of users with optional search
+ * @tag Users
  */
 export type Methods = DefineMethods<{
-  /**
-   * Get user by ID
-   * @description Retrieves a single user by their unique identifier
-   * @tag Users
-   */
   get: {
     query: {
-      /** User's unique identifier */
-      id: number;
+      /** Page number for pagination (default: 1) */
+      page: number;
+      /** Number of items per page (default: 10) */
+      limit: number;
+      /** Optional search term for filtering users */
+      searchValue?: string;
     };
     resBody: {
-      id: number;
-      name: string;
-      email: string;
+      data: UserModelDto[];
+      meta: PaginationMeta;
     } | ProblemDetails;
   };
 
   /**
    * Create new user
-   * @description Creates a new user account
+   * @description Creates a new user account with validation
    * @tag Users
    */
   post: {
     reqBody: {
-      /** User's full name */
+      /** User's full name (required) */
       name: string;
-      /** Valid email address */
+      /** Valid email address (must be unique) */
       email: string;
-      /** User age (must be 18+) */
+      /** User age (must be 18 or older) */
       age: number;
     };
-    resBody: {
-      id: number;
-      name: string;
-      email: string;
-    } | ProblemDetails;
+    resBody: UserModelDto | ProblemDetails;
   };
 }>;
 ```
 
-### Option 2: Extend with Custom OpenAPI Annotations
+**Supported JSDoc Tags:**
 
-Create a `swagger.json` file alongside your route:
+- **`@tag`** - Assigns the endpoint to a tag group (e.g., `@tag Users`)
+- **`@description`** - Detailed endpoint description
+- **`@deprecated`** - Marks the endpoint as deprecated
+- **Parameter descriptions** - Use `/** comment */` above parameter fields
 
-```json
-// api/users/swagger.json
-{
-  "tags": ["Users"],
-  "description": "User management endpoints",
-  "paths": {
-    "/users": {
-      "get": {
-        "summary": "List all users",
-        "description": "Returns a paginated list of users",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number",
-            "required": false,
-            "schema": { "type": "integer", "default": 1 }
-          }
-        ]
-      }
-    }
-  }
-}
-```
+### Custom Tag Descriptions
 
-### Option 3: Use Response Builder with Descriptions
-
-Use the ResponseBuilder pattern with descriptive names:
+Define custom descriptions for your API tags in [`config/swagger.ts`](../../../../config/swagger.ts):
 
 ```typescript
-// api/users/controller.ts
-import { ApiResponse, ResponseBuilder } from '$/@frouvel/kaname/http/ApiResponse';
+const tagDescriptions: Record<string, string> = {
+  Users: 'User management and account operations',
+  Health: 'Service health and status checks',
+  Auth: 'Authentication and authorization',
+  Admin: 'Administrative operations',
+  Posts: 'Blog post management',
+};
 
-export default defineController(() => ({
-  post: ({ body }) =>
-    ResponseBuilder.create()
-      .withValidation(body, createUserSchema)
-      .executeWithSuccess((data) => {
-        // Business logic here
-        return {
-          message: 'User created successfully',
-          user: data,
-        };
-      }),
-}));
+export default {
+  enabled: true,
+  // ... other config
+  tagDescriptions,
+};
 ```
 
-## Current Limitations & Future Enhancements
+Tags will be automatically collected from your JSDoc `@tag` annotations and displayed in Swagger UI with your custom descriptions.
 
-### What Works Now ✅
-- Automatic route discovery
-- Basic type extraction
-- RFC9457 error schemas
-- Swagger UI interface
-- OpenAPI 3.0 JSON export
+## Features & Capabilities
 
-### Planned Enhancements 🚧
-- JSDoc comment parsing for descriptions
-- Custom OpenAPI annotation support
+### Fully Supported ✅
+- Automatic route discovery from file structure
+- Type extraction from aspida definitions
+- **JSDoc comment parsing** for summaries and descriptions
+- **Custom tag descriptions** via config
+- **OpenAPI spec file generation** (YAML/JSON)
+- RFC9457 ProblemDetails error schemas
+- Interactive Swagger UI
+- Parameter documentation from JSDoc
+- Tag-based endpoint grouping
+
+### Future Enhancements 🚧
 - Zod schema to OpenAPI schema conversion
-- Tag grouping from directory structure
-- Example response generation
-- Security scheme auto-detection
+- Example response generation from sample data
+- Security scheme auto-detection from middleware
+- Request/response example values
 
 ## Best Practices
 
@@ -233,17 +192,54 @@ export type Methods = DefineMethods<{
 }>;
 ```
 
-### 2. Use Descriptive Type Names
+### 2. Add JSDoc Documentation
+
+```typescript
+/**
+ * Summary goes here
+ * @description Detailed description goes here
+ * @tag TagName
+ */
+export type Methods = DefineMethods<{
+  get: {
+    query: {
+      /** Describe each parameter */
+      page: number;
+    };
+    resBody: Data | ProblemDetails;
+  };
+}>;
+```
+
+### 3. Use Meaningful Tags
+
+```typescript
+/**
+ * @tag Users    // ✅ Good - clear category
+ */
+
+/**
+ * @tag API      // ❌ Too generic
+ */
+```
+
+### 4. Define Tag Descriptions
+
+In [`config/swagger.ts`](../../../../config/swagger.ts):
+
+```typescript
+const tagDescriptions: Record<string, string> = {
+  Users: 'User account management and profile operations',
+  Auth: 'Authentication, authorization, and session management',
+  // Add all your tags here
+};
+```
+
+### 5. Use Descriptive Type Names
 
 ```typescript
 // ✅ Good
 export type UserCreateRequest = {
-  name: string;
-  email: string;
-};
-
-export type UserResponse = {
-  id: number;
   name: string;
   email: string;
 };
@@ -254,81 +250,203 @@ export type Request = {
 };
 ```
 
-### 3. Group Related APIs
+### 6. Group Related APIs
 
 ```
 api/
   users/
     index.ts          # User listing and creation
-    [id]/
+    _id@string/
       index.ts        # User detail operations
     search/
       index.ts        # User search
+```
+
+## Complete Example
+
+Here's a complete example showing all features:
+
+```typescript
+// api/users/index.ts
+import type { DefineMethods } from 'aspida';
+import type { UserModelDto, PaginationMeta, ProblemDetails } from 'commonTypesWithClient';
+
+/**
+ * List all users with pagination
+ * @description Returns a paginated list of users. Supports optional search filtering
+ * by name or email. Results are ordered by creation date (newest first).
+ * @tag Users
+ */
+export type Methods = DefineMethods<{
+  get: {
+    query: {
+      /** Current page number (starts at 1) */
+      page: number;
+      /** Number of users per page (max: 100) */
+      limit: number;
+      /** Optional search term to filter users by name or email */
+      searchValue?: string;
+    };
+    resBody: {
+      data: UserModelDto[];
+      meta: PaginationMeta;
+    } | ProblemDetails;
+  };
+
+  /**
+   * Create a new user
+   * @description Creates a new user account. Email must be unique and age must be 18+.
+   * @tag Users
+   */
+  post: {
+    reqBody: {
+      /** User's full name (2-100 characters) */
+      name: string;
+      /** Valid email address (must be unique) */
+      email: string;
+      /** User's age (must be 18 or older) */
+      age: number;
+    };
+    resBody: UserModelDto | ProblemDetails;
+  };
+}>;
+```
+
+```typescript
+// config/swagger.ts
+const tagDescriptions: Record<string, string> = {
+  Users: 'User account management, profile operations, and user search',
+  Health: 'Service health checks and system status monitoring',
+  Auth: 'Authentication, authorization, and session management',
+};
+
+export default {
+  enabled: process.env.NODE_ENV !== 'production',
+  path: '/api-docs',
+  title: 'My API',
+  version: '1.0.0',
+  description: 'Complete API documentation with examples',
+  servers: [
+    {
+      url: 'http://localhost:31577',
+      description: 'Development server',
+    },
+  ],
+  tagDescriptions,
+};
 ```
 
 ## Troubleshooting
 
 ### Routes Not Appearing
 
-1. **Check file structure**: Ensure `index.ts` files exist
+1. **Check file structure**: Ensure `index.ts` files exist in route directories
 2. **Verify exports**: Must export `Methods` type with `DefineMethods`
 3. **Restart server**: Changes require server restart
 4. **Check logs**: Look for `[HttpKernel] Swagger UI available at /api-docs`
 
-### Type Definitions Not Showing
+### JSDoc Not Showing
 
-The current implementation shows basic types. For richer types:
-- Use specific type names instead of inline types
-- Import and use shared DTOs from `commonTypesWithClient`
+1. **Verify JSDoc format**: Must be above `export type Methods`
+2. **Check supported tags**: Use `@tag`, `@description`, `@deprecated`
+3. **Server restart**: Required after JSDoc changes
+4. **Check console**: Look for `[OpenApiGenerator] Found JSDoc for X method(s)`
 
-### Documentation Not Updating
+### Tags Not Grouped
 
-- Clear browser cache
-- Restart the development server
-- Check `SWAGGER_ENABLED=true` in `.env`
+1. **Add @tag annotation**: Each method needs `@tag TagName`
+2. **Define tag descriptions**: Add to [`config/swagger.ts`](../../../../config/swagger.ts)
+3. **Restart server**: Required for config changes
 
-## Examples from Your Current APIs
+### Spec Generation Fails
 
-### 1. Health Check (/health)
+1. **Check Swagger config**: Ensure [`config/swagger.ts`](../../../../config/swagger.ts) has no syntax errors
+2. **Verify OpenAPI generator**: Check that `SwaggerServiceProvider` is registered
+3. **Check permissions**: Ensure write permissions for output directory
+
+## CLI Commands
+
+### Generate OpenAPI Specification
+
+```bash
+# Generate YAML (default)
+npm run artisan openapi:generate
+
+# Generate JSON
+npm run artisan openapi:generate -f json
+npm run artisan openapi:generate --format json
+
+# Custom output path
+npm run artisan openapi:generate -o ./docs/openapi.yaml
+npm run artisan openapi:generate --output ./public/api-spec.json
+
+# Combined options
+npm run artisan openapi:generate -f json -o ./docs/api.json
+```
+
+## Real-World Examples
+
+### Example 1: User Management API
+
+```typescript
+// api/users/_id@string/index.ts
+import type { DefineMethods } from 'aspida';
+import type { UserModelDto, ProblemDetails } from 'commonTypesWithClient';
+
+/**
+ * Get user details by ID
+ * @description Retrieves complete user profile information including metadata
+ * @tag Users
+ */
+export type Methods = DefineMethods<{
+  get: {
+    resBody: UserModelDto | ProblemDetails;
+  };
+
+  /**
+   * Update user profile
+   * @description Updates user profile. Only provided fields will be updated.
+   * @tag Users
+   */
+  put: {
+    reqBody: {
+      /** User's full name */
+      name?: string;
+      /** Email address (must be unique) */
+      email?: string;
+    };
+    resBody: UserModelDto | ProblemDetails;
+  };
+
+  /**
+   * Delete user account
+   * @description Permanently deletes the user account and all associated data
+   * @tag Users
+   * @deprecated Use POST /users/{id}/deactivate instead
+   */
+  delete: {
+    resBody: void | ProblemDetails;
+  };
+}>;
+```
+
+### Example 2: Health Check
 
 ```typescript
 // api/health/index.ts
 import type { DefineMethods } from 'aspida';
 
+/**
+ * Service health check
+ * @description Returns 200 OK if service is healthy
+ * @tag Health
+ */
 export type Methods = DefineMethods<{
   get: {
     resBody: string;
   };
 }>;
 ```
-
-**Generated Docs**: Simple GET endpoint returning a string
-
-### 2. RFC9457 Example (/example-rfc9457)
-
-```typescript
-// api/example-rfc9457/index.ts
-import type { ApiResponse } from 'commonTypesWithClient';
-
-export type Methods = DefineMethods<{
-  post: {
-    reqBody: {
-      simulateNotFound?: boolean;
-      simulateValidation?: boolean;
-    };
-    resBody: ApiResponse<{ message: string }>;
-  };
-}>;
-```
-
-**Generated Docs**: POST endpoint with optional boolean flags, returns success/error responses
-
-## Next Steps
-
-1. **Access your documentation**: Visit http://localhost:31577/api-docs
-2. **Review generated docs**: Check what's automatically generated
-3. **Add JSDoc comments**: Enhance with descriptions (future enhancement)
-4. **Use shared types**: Import DTOs from `commonTypesWithClient` for consistency
 
 ## Support
 
