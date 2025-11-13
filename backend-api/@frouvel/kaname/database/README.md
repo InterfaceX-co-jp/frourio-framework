@@ -1,455 +1,437 @@
 # Database Module
 
-Enhanced Prisma Client management with connection pooling, retry logic, and graceful shutdown handling.
+Database abstraction layer supporting both Prisma and Drizzle ORM with **zero performance overhead** through direct pass-through access.
 
-## Overview
+## Philosophy
 
-The `@frouvel/kaname/database` module provides a production-ready Prisma Client wrapper with:
+Unlike traditional ORMs that add abstraction layers, our approach:
 
-- **Connection Pool Management**: Configurable connection pooling via environment variables
-- **Automatic Retry Logic**: Exponential backoff for failed operations
-- **Graceful Shutdown**: Proper connection cleanup on application exit
-- **Health Checks**: Database connection health monitoring
-- **Pagination Extension**: Automatic integration with `@frouvel/kaname/paginator`
+1. **Direct Pass-Through**: Zero overhead access to Prisma/Drizzle clients
+2. **No Query Builder**: Use each ORM's native API (they're already excellent!)
+3. **Simple Facade**: Just connection management and transactions
+4. **Type-Safe**: Full TypeScript support maintained
 
 ## Quick Start
 
-```typescript
-import { getPrismaClient } from '$/@frouvel/kaname/database';
-
-const prisma = getPrismaClient();
-
-// Use Prisma client as normal
-const users = await prisma.user.findMany();
-```
-
-## Configuration
-
-### Environment Variables
-
-Configure database connection pooling via environment variables:
-
-```bash
-# Maximum number of connections in the pool (default: 10)
-DATABASE_CONNECTION_POOL_SIZE=10
-
-# Connection timeout in seconds (default: 30)
-DATABASE_CONNECTION_TIMEOUT=30
-
-# Pool timeout in seconds (default: 2)
-DATABASE_POOL_TIMEOUT=2
-```
-
-### Connection String Enhancement
-
-The module automatically enhances your `DATABASE_URL` with pool parameters if not already present.
-
-**Before:**
-```
-postgresql://user:pass@localhost:5432/mydb
-```
-
-**After:**
-```
-postgresql://user:pass@localhost:5432/mydb?connection_limit=10&pool_timeout=2&connect_timeout=30
-```
-
-## Core Functions
-
-### `getPrismaClient()`
-
-Get the singleton Prisma client instance.
+### Using Prisma (Default)
 
 ```typescript
-import { getPrismaClient } from '$/@frouvel/kaname/database';
+import { DB } from '$/@frouvel/kaname/database';
 
-const prisma = getPrismaClient();
-```
+// Direct Prisma access - zero overhead!
+const prisma = DB.prisma();
 
-**Features:**
-- Returns the same instance on subsequent calls (singleton pattern)
-- Auto-connects on first use
-- Registers graceful shutdown handlers
-- Applies pagination extension automatically
-
-### `disconnectPrismaClient()`
-
-Manually disconnect the Prisma client (useful for testing).
-
-```typescript
-import { disconnectPrismaClient } from '$/@frouvel/kaname/database';
-
-await disconnectPrismaClient();
-```
-
-### `withRetry()`
-
-Execute database operations with automatic retry logic.
-
-```typescript
-import { withRetry } from '$/@frouvel/kaname/database';
-
-const result = await withRetry(
-  async () => {
-    return await prisma.user.findMany();
-  },
-  3,    // maxRetries (default: 3)
-  1000  // initialDelay in ms (default: 1000)
-);
-```
-
-**Retry Strategy:**
-- Exponential backoff: delay × 2^(attempt-1)
-- Attempt 1: 1000ms delay
-- Attempt 2: 2000ms delay
-- Attempt 3: 4000ms delay
-
-### `checkDatabaseConnection()`
-
-Check database connection health.
-
-```typescript
-import { checkDatabaseConnection } from '$/@frouvel/kaname/database';
-
-const isHealthy = await checkDatabaseConnection();
-
-if (!isHealthy) {
-  console.error('Database connection failed');
-}
-```
-
-**Features:**
-- Uses `withRetry()` internally (2 retries, 500ms delay)
-- Returns `true` if connection is healthy
-- Returns `false` if all retries fail
-
-### `resetPrismaConnection()`
-
-Reset the Prisma connection (useful when connection is stale).
-
-```typescript
-import { resetPrismaConnection } from '$/@frouvel/kaname/database';
-
-await resetPrismaConnection();
-
-// Next call to getPrismaClient() will create a new connection
-const prisma = getPrismaClient();
-```
-
-## Usage in Repositories
-
-### Basic Usage
-
-```typescript
-import { getPrismaClient } from '$/@frouvel/kaname/database';
-import { UserModel } from '$/prisma/__generated__/models/User.model';
-
-export class UserRepository {
-  constructor(private readonly _prisma: PrismaClient) {}
-
-  async findById(args: { id: number }): Promise<UserModel | null> {
-    const data = await this._prisma.user.findUnique({
-      where: { id: args.id },
-    });
-
-    if (!data) return null;
-
-    return UserModel.fromPrismaValue({ self: data });
-  }
-}
-```
-
-### In Use Cases
-
-```typescript
-import { getPrismaClient } from '$/@frouvel/kaname/database';
-import { UserRepository } from '../repository/User.repository';
-
-export class FindUserUseCase {
-  private readonly _userRepository: IUserRepository;
-
-  private constructor(args: { userRepository: IUserRepository }) {
-    this._userRepository = args.userRepository;
-  }
-
-  static create() {
-    return new FindUserUseCase({
-      userRepository: new UserRepository(getPrismaClient()),
-    });
-  }
-
-  async handleById(args: { id: number }) {
-    const user = await this._userRepository.findById({ id: args.id });
-    
-    if (!user) {
-      throw NotFoundError.create(`User with ID ${args.id} not found`, {
-        userId: args.id,
-      });
-    }
-
-    return user.toDto();
-  }
-}
-```
-
-## Service Provider Integration
-
-The database module is automatically registered via [`DatabaseServiceProvider`](../foundation/providers/DatabaseServiceProvider.ts):
-
-```typescript
-// backend-api/bootstrap/app.ts
-import {
-  DatabaseServiceProvider,
-  ConsoleServiceProvider,
-} from '$/@frouvel/kaname/foundation';
-
-const providers = [
-  DatabaseServiceProvider,  // Registers 'prisma' singleton
-  ConsoleServiceProvider,
-  // ... other providers
-];
-```
-
-**What it does:**
-1. Registers Prisma client as singleton in the application container
-2. Connects to database on boot
-3. Implements graceful disconnection on shutdown
-
-## Pagination Extension
-
-The Prisma client is automatically extended with pagination capabilities:
-
-```typescript
-const prisma = getPrismaClient();
-
-// Use pagination extension methods
-const result = await prisma.user.paginate({
-  limit: 10,
-  page: 1,
+// Use Prisma's full API
+const users = await prisma.user.findMany({
+  where: { age: { gte: 18 } },
+  include: { posts: true },
+  orderBy: { createdAt: 'desc' },
 });
-```
 
-See [`@frouvel/kaname/paginator/README.md`](../paginator/README.md) for details on pagination features.
-
-## Graceful Shutdown
-
-Shutdown handlers are automatically registered to ensure proper cleanup:
-
-```typescript
-// Listens for these signals:
-- SIGINT  (Ctrl+C)
-- SIGTERM (container shutdown)
-- beforeExit (Node.js process exit)
-```
-
-**Shutdown Process:**
-1. Log disconnect message
-2. Call `prisma.$disconnect()`
-3. Set prisma instance to null
-4. Log completion
-
-## Best Practices
-
-### 1. Use Singleton Pattern
-
-Always use `getPrismaClient()` instead of creating new instances:
-
-```typescript
-// ✅ Good
-import { getPrismaClient } from '$/@frouvel/kaname/database';
-const prisma = getPrismaClient();
-
-// ❌ Bad
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-```
-
-### 2. Use Retry Logic for Critical Operations
-
-```typescript
-import { withRetry, getPrismaClient } from '$/@frouvel/kaname/database';
-
-const prisma = getPrismaClient();
-
-// Wrap critical operations
-const result = await withRetry(async () => {
-  return await prisma.user.create({
-    data: { /* ... */ },
+// Transactions
+await DB.transaction(async (tx) => {
+  const user = await tx.user.create({
+    data: { name: 'John Doe', email: 'john@example.com' },
+  });
+  
+  await tx.profile.create({
+    data: { userId: user.id, bio: 'Hello!' },
   });
 });
 ```
 
-### 3. Health Checks in Production
+### Using Drizzle
 
 ```typescript
-import { checkDatabaseConnection } from '$/@frouvel/kaname/database';
+import { DB } from '$/@frouvel/kaname/database';
+import { users, posts } from '$/schema';
+import { eq } from 'drizzle-orm';
 
-// Add to your health check endpoint
-export default defineController(() => ({
-  get: async () => {
-    const dbHealthy = await checkDatabaseConnection();
-    
-    return ApiResponse.success({
-      database: dbHealthy ? 'healthy' : 'unhealthy',
-    });
-  },
-}));
-```
+// Direct Drizzle access - zero overhead!
+const db = DB.drizzle();
 
-### 4. Access via Container
+// Use Drizzle's full API
+const result = await db
+  .select()
+  .from(users)
+  .where(eq(users.age, 18))
+  .leftJoin(posts, eq(users.id, posts.userId));
 
-In service providers or when you need dependency injection:
-
-```typescript
-import type { Application } from '$/@frouvel/kaname/foundation';
-import type { PrismaClient } from '@prisma/client';
-
-const prisma = app.make<PrismaClient>('prisma');
-```
-
-## Testing
-
-### Reset Connection Between Tests
-
-```typescript
-import { resetPrismaConnection } from '$/@frouvel/kaname/database';
-
-afterEach(async () => {
-  await resetPrismaConnection();
+// Transactions
+await DB.transaction(async (tx) => {
+  const [user] = await tx.insert(users).values({
+    name: 'John Doe',
+    email: 'john@example.com'
+  }).returning();
+  
+  await tx.insert(profiles).values({
+    userId: user.id,
+    bio: 'Hello!',
+  });
 });
 ```
 
-### Mock Prisma Client
+## Configuration
+
+### config/database.ts
 
 ```typescript
-import { vi } from 'vitest';
+import type { DatabaseConfig } from '$/@frouvel/kaname/database';
+import { env } from '$/env';
 
-vi.mock('$/@frouvel/kaname/database', () => ({
-  getPrismaClient: () => mockPrismaClient,
-}));
+export default {
+  // Default connection
+  default: 'primary',
+
+  // Connection configurations
+  connections: {
+    // Prisma connection
+    primary: {
+      driver: 'prisma',
+      url: env('DATABASE_URL'),
+      pool: {
+        min: env('DB_POOL_MIN', 2),
+        max: env('DB_POOL_MAX', 10),
+      },
+    },
+
+    // Drizzle connection (optional)
+    analytics: {
+      driver: 'drizzle',
+      connection: {
+        host: env('ANALYTICS_DB_HOST', 'localhost'),
+        port: env('ANALYTICS_DB_PORT', 5432),
+        user: env('ANALYTICS_DB_USER'),
+        password: env('ANALYTICS_DB_PASSWORD'),
+        database: env('ANALYTICS_DB_DATABASE'),
+      },
+    },
+
+    // Read replica (optional)
+    'read-replica': {
+      driver: 'prisma',
+      url: env('READ_REPLICA_URL'),
+    },
+  },
+} satisfies DatabaseConfig;
 ```
 
-## Architecture
+## API Reference
 
-```
-@frouvel/kaname/database/
-├── index.ts                    # Main exports
-├── PrismaClientManager.ts      # Core implementation
-└── README.md                   # This file
-```
+### DB.prisma()
 
-**Features in `PrismaClientManager.ts`:**
-
-1. **Connection Pool Configuration** (`createPrismaClient`)
-   - Reads environment variables
-   - Enhances DATABASE_URL with pool parameters
-   - Configures logging based on environment
-
-2. **Singleton Management** (`getPrismaClient`)
-   - Creates instance on first call
-   - Returns same instance on subsequent calls
-   - Auto-connects and registers shutdown handlers
-
-3. **Retry Logic** (`withRetry`)
-   - Exponential backoff algorithm
-   - Configurable max retries and delay
-   - Detailed error logging
-
-4. **Health Checks** (`checkDatabaseConnection`)
-   - Simple SELECT 1 query
-   - Uses retry logic internally
-   - Returns boolean status
-
-5. **Connection Management** (`resetPrismaConnection`, `disconnectPrismaClient`)
-   - Clean disconnection
-   - Instance reset
-   - Preparation for reconnection
-
-## Environment-Specific Configuration
-
-### Development
+Get direct access to Prisma client (zero overhead).
 
 ```typescript
-// Logging enabled: query, info, warn, error
-// Connection pool: 10 connections (or env override)
+const prisma = DB.prisma(); // Default connection
+const replica = DB.prisma('read-replica'); // Specific connection
+
+// Use Prisma's full API
+const users = await prisma.user.findMany({
+  where: { status: 'active' },
+  include: { posts: { take: 5 } },
+});
 ```
 
-### Production
+### DB.drizzle()
+
+Get direct access to Drizzle client (zero overhead).
 
 ```typescript
-// Logging: warn, error only
-// Connection pool: configured via env (recommended: 10-20)
-// Always cache configuration: npm run artisan config:cache
+const db = DB.drizzle(); // Default connection
+const analytics = DB.drizzle('analytics'); // Specific connection
+
+// Use Drizzle's full API
+const users = await db.select().from(usersTable);
 ```
 
-### Testing
+### DB.transaction()
+
+Execute operations within a transaction.
 
 ```typescript
-// Use separate test database
-// Reset connections between tests
-// Mock Prisma client where appropriate
+// Prisma transaction
+await DB.transaction(async (prisma) => {
+  await prisma.user.create({ data: { name: 'John' } });
+  await prisma.profile.create({ data: { userId: 1 } });
+});
+
+// Drizzle transaction
+await DB.transaction(async (tx) => {
+  await tx.insert(users).values({ name: 'John' });
+  await tx.insert(profiles).values({ userId: 1 });
+});
+
+// Specific connection
+await DB.transaction(async (tx) => {
+  // ... operations
+}, 'read-replica');
 ```
+
+### DB.client()
+
+Get the underlying client (ORM-agnostic).
+
+```typescript
+const client = DB.client(); // Returns Prisma or Drizzle based on config
+```
+
+### Multiple Connections
+
+```typescript
+// Switch default connection
+DB.setDefaultConnection('read-replica');
+const users = DB.prisma().user.findMany(); // Uses read replica
+
+// Or specify connection directly
+const primary = DB.prisma('primary');
+const replica = DB.prisma('read-replica');
+const analytics = DB.drizzle('analytics');
+```
+
+## Usage Patterns
+
+### Pattern 1: Direct Usage (Simplest)
+
+```typescript
+import { DB } from '$/@frouvel/kaname/database';
+
+export class UserService {
+  async getActiveUsers() {
+    const prisma = DB.prisma();
+    return prisma.user.findMany({
+      where: { status: 'active' },
+    });
+  }
+}
+```
+
+### Pattern 2: Repository Pattern (Recommended)
+
+```typescript
+import { DB } from '$/@frouvel/kaname/database';
+
+export class UserRepository {
+  private prisma = DB.prisma();
+
+  async findById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: { posts: true },
+    });
+  }
+
+  async create(data: CreateUserDto) {
+    return this.prisma.user.create({ data });
+  }
+
+  async paginate(page: number, limit: number) {
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        take: limit,
+        skip: (page - 1) * limit,
+      }),
+      this.prisma.user.count(),
+    ]);
+
+    return { users, total };
+  }
+}
+```
+
+### Pattern 3: Multiple ORMs
+
+```typescript
+import { DB } from '$/@frouvel/kaname/database';
+import { analyticsEvents } from '$/schema';
+
+export class AnalyticsService {
+  private prisma = DB.prisma('primary');
+  private analytics = DB.drizzle('analytics');
+
+  async trackUserAction(userId: string, action: string) {
+    // Store in Drizzle analytics DB
+    await this.analytics.insert(analyticsEvents).values({
+      userId,
+      action,
+      timestamp: new Date(),
+    });
+
+    // Update user stats in Prisma
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { lastActiveAt: new Date() },
+    });
+  }
+}
+```
+
+## Testing Support
+
+The `DatabaseTestCase` works seamlessly with the DB facade:
+
+```typescript
+import { DatabaseTestCase, DB } from '$/@frouvel/kaname/testing';
+import { expect } from 'vitest';
+
+class UserRepositoryTest extends DatabaseTestCase {
+  private repository: UserRepository;
+
+  protected async setUp() {
+    await super.setUp();
+    this.repository = new UserRepository();
+  }
+
+  run() {
+    this.suite('UserRepository', () => {
+      this.test('can create user', async () => {
+        const user = await this.repository.create({
+          name: 'John Doe',
+          email: 'john@example.com',
+        });
+
+        expect(user).toBeDefined();
+        expect(user.name).toBe('John Doe');
+
+        // Can also use DB facade directly in tests
+        const found = await DB.prisma().user.findUnique({
+          where: { id: user.id },
+        });
+        expect(found).toBeDefined();
+      });
+    });
+  }
+}
+
+new UserRepositoryTest().run();
+```
+
+## Migration from Direct Prisma
+
+### Before
+
+```typescript
+import { getPrismaClient } from '$/@frouvel/kaname/database';
+
+const prisma = getPrismaClient();
+const users = await prisma.user.findMany();
+```
+
+### After
+
+```typescript
+import { DB } from '$/@frouvel/kaname/database';
+
+const prisma = DB.prisma();
+const users = await prisma.user.findMany();
+```
+
+**Note**: `getPrismaClient()` still works for backward compatibility but is deprecated.
+
+## Performance
+
+**Zero overhead!** The DB facade provides direct pass-through to the underlying ORM client:
+
+```typescript
+// These are equivalent in performance:
+const prisma = getPrismaClient();
+const users1 = await prisma.user.findMany();
+
+const users2 = await DB.prisma().user.findMany();
+// Same speed - DB.prisma() just returns the client directly!
+```
+
+## Why Not a Query Builder?
+
+Query builders add abstraction and learning curves. Instead:
+
+1. **Prisma** already has excellent TypeScript support and query API
+2. **Drizzle** is designed to be close to SQL with great DX
+3. **Zero Overhead**: Direct access means no performance penalty
+4. **Full Features**: Access to all ORM-specific features
+5. **Type Safety**: Maintain full TypeScript types from your ORM
+
+## Advanced Usage
+
+### Graceful Shutdown
+
+```typescript
+process.on('SIGTERM', async () => {
+  await DB.disconnectAll();
+  process.exit(0);
+});
+```
+
+### Health Checks
+
+```typescript
+export async function checkDatabaseHealth() {
+  try {
+    const prisma = DB.prisma();
+    await prisma.$queryRaw`SELECT 1`;
+    return { status: 'healthy' };
+  } catch (error) {
+    return { status: 'unhealthy', error };
+  }
+}
+```
+
+### Custom Connection Registration
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+import { DB } from '$/@frouvel/kaname/database';
+
+// Create custom Prisma client with extensions
+const prisma = new PrismaClient().$extends({
+  // Your extensions here
+});
+
+// Register it
+DB.register('custom', prisma, 'prisma');
+
+// Use it
+const users = await DB.prisma('custom').user.findMany();
+```
+
+## Best Practices
+
+1. **Use DB Facade**: Import `DB` instead of `getPrismaClient()`
+2. **Repository Pattern**: Encapsulate data access in repository classes
+3. **Connection Names**: Use descriptive names (`primary`, `read-replica`, `analytics`)
+4. **Transactions**: Always use `DB.transaction()` for multiple operations
+5. **Testing**: Use `DatabaseTestCase` for integration tests
+6. **Read Replicas**: Route read-heavy operations to read replicas
 
 ## Troubleshooting
 
-### Connection Pool Exhausted
+### "Database manager not initialized"
 
-**Symptoms:** `PrismaPool` errors, timeout errors
+Make sure `DatabaseServiceProvider` is registered in your `bootstrap/app.ts`:
 
-**Solution:**
+```typescript
+import { DatabaseServiceProvider } from '$/@frouvel/kaname/foundation';
+
+const providers = [
+  DatabaseServiceProvider,
+  // ... other providers
+];
+```
+
+### Type Errors with Prisma Client
+
+Make sure you've generated Prisma client:
+
 ```bash
-# Increase pool size
-DATABASE_CONNECTION_POOL_SIZE=20
+npm run generate:prisma
 ```
 
-### Slow Queries
+### Multiple Connections Not Working
 
-**Symptoms:** Timeouts, slow response times
-
-**Solution:**
-```bash
-# Increase connection timeout
-DATABASE_CONNECTION_TIMEOUT=60
-```
-
-### Connection Leaks
-
-**Symptoms:** Connections not released, memory growth
-
-**Solution:**
-```typescript
-// Ensure all queries complete
-// Check for unhandled promise rejections
-// Use withRetry for flaky operations
-```
-
-### Stale Connections
-
-**Symptoms:** "Connection reset" errors
-
-**Solution:**
-```typescript
-import { resetPrismaConnection } from '$/@frouvel/kaname/database';
-
-await resetPrismaConnection();
-```
-
-## Migration from Old Pattern
-
-**Before:**
-```typescript
-import { getPrismaClient } from '$/service/getPrismaClient';
-```
-
-**After:**
-```typescript
-import { getPrismaClient } from '$/@frouvel/kaname/database';
-```
-
-All other usage remains the same!
+Check your `config/database.ts` has all connections defined and the connection name matches.
 
 ## See Also
 
-- [`@frouvel/kaname/paginator`](../paginator/README.md) - Pagination extension
-- [`DatabaseServiceProvider`](../foundation/providers/DatabaseServiceProvider.ts) - Service provider
-- [Prisma Documentation](https://www.prisma.io/docs) - Official Prisma docs
+- [Architecture Document](./ARCHITECTURE.md) - Detailed architectural design
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Drizzle Documentation](https://orm.drizzle.team/docs/overview)

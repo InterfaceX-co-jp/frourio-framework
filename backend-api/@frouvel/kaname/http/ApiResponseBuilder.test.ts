@@ -1,15 +1,15 @@
 /**
- * ResponseBuilder Tests
+ * ApiResponseBuilder Tests
  *
- * Tests for the ResponseBuilder class
+ * Tests for the ApiResponseBuilder class
  */
 
 import { describe, it, expect } from 'vitest';
-import { ResponseBuilder } from '$/@frouvel/kaname/http/ResponseBuilder';
+import { ApiResponseBuilder } from '$/@frouvel/kaname/http/ApiResponseBuilder';
 import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
 import { z } from 'zod';
 
-describe('ResponseBuilder', () => {
+describe('ApiResponseBuilder', () => {
   describe('withValidation', () => {
     it('should successfully validate data', () => {
       const schema = z.object({
@@ -19,7 +19,7 @@ describe('ResponseBuilder', () => {
 
       const validData = { name: 'John', age: 30 };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(validData, schema)
         .handle((data) => {
           expect(data).toEqual(validData);
@@ -38,7 +38,7 @@ describe('ResponseBuilder', () => {
 
       const invalidData = { name: 'John', age: 'not-a-number' };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(invalidData, schema)
         .handle((data) => ApiResponse.success(data));
 
@@ -58,7 +58,7 @@ describe('ResponseBuilder', () => {
 
       const invalidData = { email: 'invalid-email', age: -5 };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(invalidData, schema)
         .handle((data) => ApiResponse.success(data));
 
@@ -75,7 +75,7 @@ describe('ResponseBuilder', () => {
       const schema = z.object({ name: z.string() });
       const data = { name: 'Test' };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .handle((validData) => {
           return ApiResponse.success({ processed: validData.name });
@@ -89,7 +89,7 @@ describe('ResponseBuilder', () => {
       const schema = z.object({ age: z.number() });
       const data = { age: 15 };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .handle((validData) => {
           if (validData.age < 18) {
@@ -113,7 +113,7 @@ describe('ResponseBuilder', () => {
 
       let handlerCalled = false;
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(invalidData, schema)
         .handle(() => {
           handlerCalled = true;
@@ -130,7 +130,7 @@ describe('ResponseBuilder', () => {
       const schema = z.object({ value: z.number() });
       const data = { value: 42 };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .then((validData) => ApiResponse.success(validData));
 
@@ -144,7 +144,7 @@ describe('ResponseBuilder', () => {
       const schema = z.object({ name: z.string() });
       const data = { name: 'Auto' };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .executeWithSuccess((validData) => {
           return { processed: validData.name };
@@ -158,7 +158,7 @@ describe('ResponseBuilder', () => {
       const schema = z.object({ age: z.number() });
       const data = { age: 15 };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .executeWithSuccess((validData) => {
           if (validData.age < 18) {
@@ -175,7 +175,7 @@ describe('ResponseBuilder', () => {
       const schema = z.object({ id: z.number() });
       const data = { id: 1 };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .executeWithSuccess((validData) => {
           return ApiResponse.success({
@@ -217,7 +217,7 @@ describe('ResponseBuilder', () => {
         },
       };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(validData, schema)
         .handle((data) => {
           expect(data.user.profile.age).toBe(30);
@@ -239,7 +239,7 @@ describe('ResponseBuilder', () => {
         nullable: null,
       };
 
-      const result = ResponseBuilder.create()
+      const result = ApiResponseBuilder.create()
         .withValidation(data, schema)
         .handle((validData) => {
           expect(validData.required).toBe('test');
@@ -260,7 +260,7 @@ describe('ResponseBuilder', () => {
         active: z.boolean(),
       });
 
-      ResponseBuilder.create()
+      ApiResponseBuilder.create()
         .withValidation({ name: 'Test', age: 30, active: true }, schema)
         .handle((data) => {
           // TypeScript should infer these types correctly

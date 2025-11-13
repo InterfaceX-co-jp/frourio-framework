@@ -1,53 +1,57 @@
+import type { DatabaseConfig } from '$/@frouvel/kaname/database';
+import { env } from '$/env';
+
 /**
  * Database Configuration
  *
- * Configuration for database connections.
+ * Configure database connections for your application.
+ * Supports both Prisma and Drizzle ORM.
  */
+const databaseConfig = {
+  /**
+   * Default database connection
+   */
+  default: 'default',
 
-import { z } from 'zod';
-
-export const databaseConfigSchema = z.object({
-  default: z.string(),
-  connections: z.object({
-    postgresql: z.object({
-      url: z.string().url(),
-      schema: z.string(),
-    }),
-  }),
-  pool: z.object({
-    min: z.number().positive(),
-    max: z.number().positive(),
-  }),
-  migrations: z.object({
-    tableName: z.string(),
-    directory: z.string(),
-  }),
-  seeds: z.object({
-    directory: z.string(),
-  }),
-});
-
-export type DatabaseConfig = z.infer<typeof databaseConfigSchema>;
-
-export default databaseConfigSchema.parse({
-  default: process.env.DB_CONNECTION || 'postgresql',
+  /**
+   * Database connections
+   */
   connections: {
-    postgresql: {
-      url:
-        process.env.DATABASE_URL ||
-        'postgresql://root:root@localhost:5432/frourio_framework',
-      schema: process.env.DB_SCHEMA || 'public',
+    /**
+     * Default Prisma connection
+     */
+    default: {
+      driver: 'prisma',
+      url: env.DATABASE_URL,
+      pool: {
+        min: env.DB_POOL_MIN,
+        max: env.DB_POOL_MAX,
+      },
     },
+
+    // Example: Read replica (uncomment to use)
+    // 'read-replica': {
+    //   driver: 'prisma',
+    //   url: env.READ_REPLICA_URL,
+    //   pool: {
+    //     min: 2,
+    //     max: 5,
+    //   },
+    // },
+
+    // Example: Drizzle connection (uncomment to use)
+    // analytics: {
+    //   driver: 'drizzle',
+    //   connection: {
+    //     host: env.ANALYTICS_DB_HOST,
+    //     port: env.ANALYTICS_DB_PORT,
+    //     user: env.ANALYTICS_DB_USER,
+    //     password: env.ANALYTICS_DB_PASSWORD,
+    //     database: env.ANALYTICS_DB_DATABASE,
+    //   },
+    // },
   },
-  pool: {
-    min: Number(process.env.DB_POOL_MIN || 2),
-    max: Number(process.env.DB_POOL_MAX || 10),
-  },
-  migrations: {
-    tableName: process.env.DB_MIGRATIONS_TABLE || 'migrations',
-    directory: './prisma/migrations',
-  },
-  seeds: {
-    directory: './prisma/seeders',
-  },
-});
+} satisfies DatabaseConfig;
+
+export default databaseConfig;
+export type { DatabaseConfig };
