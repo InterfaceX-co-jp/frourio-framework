@@ -18,7 +18,7 @@ export type {
   ConnectionConfig,
 } from './contracts/DatabaseManager.interface';
 
-// Legacy Prisma utilities (deprecated, use DB.prisma() instead)
+// Prisma utilities
 export {
   getPrismaClient,
   disconnectPrismaClient,
@@ -26,3 +26,10 @@ export {
   checkDatabaseConnection,
   resetPrismaConnection,
 } from './PrismaClientManager';
+
+// Drizzle utilities
+export {
+  getDrizzleClient,
+  disconnectDrizzleClient,
+  resetDrizzleConnection,
+} from './DrizzleClientManager';

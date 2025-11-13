@@ -1,5 +1,5 @@
-import type { DatabaseConfig } from '$/@frouvel/kaname/database';
-import { env } from '$/env';
+import type { DatabaseConfig } from '../@frouvel/kaname/database';
+import { env } from '../env';
 
 /**
  * Database Configuration

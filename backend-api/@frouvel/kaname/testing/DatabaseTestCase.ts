@@ -26,13 +26,13 @@ export abstract class DatabaseTestCase extends TestCase {
 
     if (!DatabaseTestCase.isMigrated) {
       try {
-        await execPromise('npx prisma migrate deploy');
+        await execPromise('npx prisma migrate deploy --schema=./database/prisma/schema.prisma');
         DatabaseTestCase.isMigrated = true;
       } catch (error) {
         console.error('Migration failed:', error);
         console.log('Resetting test database...');
         try {
-          await execPromise('npx prisma migrate reset --force');
+          await execPromise('npx prisma migrate reset --force --schema=./database/prisma/schema.prisma');
           DatabaseTestCase.isMigrated = true;
         } catch (resetError) {
           console.error('Database reset failed:', resetError);
