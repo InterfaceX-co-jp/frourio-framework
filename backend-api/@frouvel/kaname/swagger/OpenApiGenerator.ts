@@ -361,10 +361,6 @@ export class OpenApiGenerator {
         spacing: 'preserve',
       });
 
-      console.log(
-        `[OpenApiGenerator DEBUG] Found ${comments.length} comment blocks`,
-      );
-
       // Find comments before method definitions
       const methods = ['get', 'post', 'put', 'patch', 'delete'];
 
@@ -389,9 +385,6 @@ export class OpenApiGenerator {
 
           const testSlice = afterComment.slice(0, 500);
           if (methodPattern.test(testSlice)) {
-            console.log(
-              `[OpenApiGenerator DEBUG] Matched comment to method: ${method}`,
-            );
             const summaryTag = comment.tags.find(
               (t: any) => t.tag === 'summary',
             );
@@ -419,16 +412,6 @@ export class OpenApiGenerator {
 
             jsdocMap.set(method, jsDoc);
             break;
-          } else {
-            // Debug: show what we're trying to match
-            if (comment.tags.some((t: any) => t.tag === 'tag')) {
-              console.log(
-                `[OpenApiGenerator DEBUG] Comment has @tag but pattern didn't match for ${method}`,
-              );
-              console.log(
-                `[OpenApiGenerator DEBUG] First 150 chars after comment: ${testSlice.substring(0, 150).replace(/\n/g, '\\n')}`,
-              );
-            }
           }
         }
       }
