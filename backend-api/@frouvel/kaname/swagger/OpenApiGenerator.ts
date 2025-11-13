@@ -87,7 +87,8 @@ export class OpenApiGenerator {
               },
               title: {
                 type: 'string',
-                description: 'A short, human-readable summary of the problem type',
+                description:
+                  'A short, human-readable summary of the problem type',
                 example: 'Not Found',
               },
               status: {
@@ -97,12 +98,14 @@ export class OpenApiGenerator {
               },
               detail: {
                 type: 'string',
-                description: 'A human-readable explanation specific to this occurrence',
+                description:
+                  'A human-readable explanation specific to this occurrence',
                 example: 'The requested resource was not found',
               },
               instance: {
                 type: 'string',
-                description: 'A URI reference that identifies the specific occurrence',
+                description:
+                  'A URI reference that identifies the specific occurrence',
                 example: '/api/users/123',
               },
             },
@@ -188,10 +191,12 @@ export class OpenApiGenerator {
     });
 
     // Add tag definitions with descriptions
-    spec.tags = Array.from(tagSet).sort().map((tag) => ({
-      name: tag,
-      description: this._getTagDescription(tag),
-    }));
+    spec.tags = Array.from(tagSet)
+      .sort()
+      .map((tag) => ({
+        name: tag,
+        description: this._getTagDescription(tag),
+      }));
 
     return spec;
   }
@@ -226,7 +231,7 @@ export class OpenApiGenerator {
         if (stat.isDirectory()) {
           // Recursively scan subdirectories
           let paramName = entry;
-          
+
           // Handle parameter directories (_id, _id@string, etc.)
           if (entry.startsWith('_')) {
             paramName = entry.slice(1); // Remove leading underscore
@@ -236,7 +241,7 @@ export class OpenApiGenerator {
               paramName = paramName.substring(0, atIndex);
             }
           }
-          
+
           const newPrefix =
             entry === '_id' || entry.startsWith('_id@')
               ? `${pathPrefix}/{id}`
@@ -272,6 +277,18 @@ export class OpenApiGenerator {
 
       // Parse JSDoc comments from the file
       const jsdocMap = this._parseJsDocFromFile(content);
+
+      // Debug: log what JSDoc was found
+      if (jsdocMap.size > 0) {
+        console.log(
+          `[OpenApiGenerator] Found JSDoc for ${jsdocMap.size} method(s) in ${filePath}`,
+        );
+        jsdocMap.forEach((doc, method) => {
+          console.log(
+            `[OpenApiGenerator]   ${method}: tags=[${doc.tags?.join(', ') || 'none'}]`,
+          );
+        });
+      }
 
       // Extract methods from DefineMethods - handle nested braces
       const defineMethodsIndex = content.indexOf('DefineMethods<{');
@@ -334,6 +351,7 @@ export class OpenApiGenerator {
   /**
    * Parse JSDoc comments from file content
    */
+  // eslint-disable-next-line complexity
   private _parseJsDocFromFile(content: string): Map<string, JsDocInfo> {
     const jsdocMap = new Map<string, JsDocInfo>();
 
@@ -343,20 +361,37 @@ export class OpenApiGenerator {
         spacing: 'preserve',
       });
 
+      console.log(
+        `[OpenApiGenerator DEBUG] Found ${comments.length} comment blocks`,
+      );
+
       // Find comments before method definitions
       const methods = ['get', 'post', 'put', 'patch', 'delete'];
 
       for (const comment of comments) {
-        // Extract method from the next code after comment
-        const afterComment = content.slice(content.indexOf(comment.source));
+        // Find the comment in content using its description as a marker
+        const commentText =
+          comment.description || comment.tags[0]?.description || '';
+        if (!commentText) continue;
+
+        const commentIndex = content.indexOf(commentText);
+        if (commentIndex === -1) continue;
+
+        const afterComment = content.slice(commentIndex);
 
         for (const method of methods) {
+          // Look for method definition after comment
+          // Pattern: @tag Users */ \n get: {
           const methodPattern = new RegExp(
             `\\*\\/\\s*${method}\\s*:\\s*\\{`,
             's',
           );
 
-          if (methodPattern.test(afterComment.slice(0, 200))) {
+          const testSlice = afterComment.slice(0, 500);
+          if (methodPattern.test(testSlice)) {
+            console.log(
+              `[OpenApiGenerator DEBUG] Matched comment to method: ${method}`,
+            );
             const summaryTag = comment.tags.find(
               (t: any) => t.tag === 'summary',
             );
@@ -370,7 +405,8 @@ export class OpenApiGenerator {
               description: descTag?.description || undefined,
               tags: comment.tags
                 .filter((t: any) => t.tag === 'tag')
-                .map((t: any) => t.name),
+                .map((t: any) => t.name || t.description) // Handle both name and description
+                .filter(Boolean), // Remove empty values
               deprecated: comment.tags.some((t: any) => t.tag === 'deprecated'),
               params: comment.tags
                 .filter((t: any) => t.tag === 'param')
@@ -383,6 +419,16 @@ export class OpenApiGenerator {
 
             jsdocMap.set(method, jsDoc);
             break;
+          } else {
+            // Debug: show what we're trying to match
+            if (comment.tags.some((t: any) => t.tag === 'tag')) {
+              console.log(
+                `[OpenApiGenerator DEBUG] Comment has @tag but pattern didn't match for ${method}`,
+              );
+              console.log(
+                `[OpenApiGenerator DEBUG] First 150 chars after comment: ${testSlice.substring(0, 150).replace(/\n/g, '\\n')}`,
+              );
+            }
           }
         }
       }

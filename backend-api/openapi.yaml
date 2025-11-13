@@ -6,7 +6,9 @@ info:
 servers:
   - url: http://localhost:31577
     description: Development
-tags: []
+tags:
+  - name: Users
+    description: Users related operations
 paths:
   /api/example/error/rfc9457:
     get:
@@ -144,7 +146,10 @@ paths:
           $ref: "#/components/responses/InternalServerError"
   /api/users/{id}:
     get:
-      summary: GET /api/users/{id}
+      summary: a single user
+      description: detailed information about a specific user by their unique identifier
+      tags:
+        - Users
       responses:
         "200":
           description: Successful response
@@ -169,7 +174,10 @@ paths:
           schema:
             type: string
     patch:
-      summary: PATCH /api/users/{id}
+      summary: user information
+      description: one or more fields of an existing user. All fields are optional.
+      tags:
+        - Users
       responses:
         "200":
           description: Successful response
@@ -200,7 +208,11 @@ paths:
           schema:
             type: string
     delete:
-      summary: DELETE /api/users/{id}
+      summary: a user account
+      description: deletes a user account. This action cannot be undone.
+      tags:
+        - Users
+      deprecated: true
       responses:
         "200":
           description: Successful response
@@ -226,7 +238,11 @@ paths:
             type: string
   /api/users:
     get:
-      summary: GET /api/users
+      summary: paginated list of users
+      description: a paginated list of all users in the system with optional search
+        filtering
+      tags:
+        - Users
       responses:
         "200":
           description: Successful response
@@ -256,7 +272,10 @@ paths:
           schema:
             type: number
     post:
-      summary: POST /api/users
+      summary: new user account
+      description: a new user account with the provided information. Email must be unique.
+      tags:
+        - Users
       responses:
         "200":
           description: Successful response
