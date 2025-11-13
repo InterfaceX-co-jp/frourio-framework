@@ -20,8 +20,11 @@ import { resolve } from 'path';
 
 // Get the base path (backend-api directory)
 // Resolve to absolute path to ensure consistency across environments
-// Go up from bootstrap/ to backend-api/
-const basePath = resolve(__dirname, '..');
+// In production build, __dirname is backend-api/ (where index.js is)
+// In development, __dirname is backend-api/bootstrap/
+const basePath = __dirname.endsWith('bootstrap')
+  ? resolve(__dirname, '..')
+  : __dirname;
 
 
 /*
