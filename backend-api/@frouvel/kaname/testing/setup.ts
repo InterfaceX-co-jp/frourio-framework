@@ -4,7 +4,8 @@ import util from 'util';
 import { exec } from 'child_process';
 import { getPrismaClient } from '$/@frouvel/kaname/database';
 import { env } from '$/env';
-import { init } from '$/service/app';
+import app from '$/bootstrap/app';
+import type { HttpKernel } from '$/@frouvel/kaname/foundation';
 
 const execPromise = util.promisify(exec);
 
@@ -112,7 +113,8 @@ export function setupTestEnvironment(options: TestEnvironmentOptions = {}) {
     }
 
     // Start test server
-    server = init();
+    const kernel = app.make<HttpKernel>('HttpKernel');
+    server = await kernel.handle();
     await server.listen({ port, host: '0.0.0.0' });
   });
 
