@@ -88,6 +88,7 @@ export abstract class Factory<T> {
    * Create and persist model(s) with the given attributes
    * Subclasses should override this to implement persistence logic
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async create(overrides?: Partial<T>): Promise<T | T[]> {
     throw new Error(
       'create() must be implemented in subclass with Prisma persistence',
@@ -112,9 +113,7 @@ export abstract class Factory<T> {
 /**
  * Simple factory function creator for quick test data generation
  */
-export function defineFactory<T>(
-  definition: () => T,
-): FactoryFunction<T> {
+export function defineFactory<T>(definition: () => T): FactoryFunction<T> {
   return (overrides?: Partial<T>) => {
     return {
       ...definition(),
@@ -152,7 +151,8 @@ export const fake = {
    * Generate a random string
    */
   string: (length = 10): string => {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -196,7 +196,9 @@ export const fake = {
    * Generate a random date
    */
   date: (start?: Date, end?: Date): Date => {
-    const startTime = start ? start.getTime() : Date.now() - 365 * 24 * 60 * 60 * 1000;
+    const startTime = start
+      ? start.getTime()
+      : Date.now() - 365 * 24 * 60 * 60 * 1000;
     const endTime = end ? end.getTime() : Date.now();
     return new Date(startTime + Math.random() * (endTime - startTime));
   },
@@ -212,7 +214,16 @@ export const fake = {
    * Generate a random name
    */
   name: (): string => {
-    const names = ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Henry'];
+    const names = [
+      'Alice',
+      'Bob',
+      'Charlie',
+      'David',
+      'Eve',
+      'Frank',
+      'Grace',
+      'Henry',
+    ];
     return fake.pick(names);
   },
 
@@ -221,8 +232,26 @@ export const fake = {
    */
   text: (words = 10): string => {
     const wordList = [
-      'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
-      'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+      'the',
+      'be',
+      'to',
+      'of',
+      'and',
+      'a',
+      'in',
+      'that',
+      'have',
+      'I',
+      'it',
+      'for',
+      'not',
+      'on',
+      'with',
+      'he',
+      'as',
+      'you',
+      'do',
+      'at',
     ];
     const result: string[] = [];
     for (let i = 0; i < words; i++) {
