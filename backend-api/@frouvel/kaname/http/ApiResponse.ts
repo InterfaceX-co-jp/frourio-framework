@@ -16,7 +16,7 @@ import { DEFAULT_PROBLEM_TYPE } from './type/nfc9457';
 import { AbstractFrourioFrameworkError } from '../error/FrourioFrameworkError';
 
 // Align with Frourio's generated HttpStatusNoOk union in $server.ts
-type ErrorStatus =
+type HttpStatusNoOk =
   | 301
   | 302
   | 400
@@ -112,11 +112,11 @@ const returnSuccess = <T>(val: T) => ({
  */
 function returnProblemDetails(
   error: unknown,
-  defaultStatus: ErrorStatus = 500,
+  defaultStatus: HttpStatusNoOk = 500,
 ) {
   const problemDetails = errorToProblemDetails(error);
   const status =
-    (problemDetails.status as ErrorStatus | undefined) ?? defaultStatus;
+    (problemDetails.status as HttpStatusNoOk | undefined) ?? defaultStatus;
 
   return {
     status,
