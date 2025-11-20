@@ -79,7 +79,9 @@ describe('Configuration Helper', () => {
     });
 
     it('should handle object types', () => {
-      const feature = config<{ enabled: boolean; limit: number }>('custom.feature');
+      const feature = config<{ enabled: boolean; limit: number }>(
+        'custom.feature',
+      );
       expect(feature).toEqual({
         enabled: true,
         limit: 100,
