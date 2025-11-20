@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import util from 'util';
 import { exec } from 'child_process';
 import { getPrismaClient } from '$/@frouvel/kaname/database';
-import { env } from '$/env';
+import { config } from '$/@frouvel/kaname/config';
 import app from '$/bootstrap/app';
 import type { HttpKernel } from '$/@frouvel/kaname/foundation';
 
@@ -43,9 +43,9 @@ export interface TestEnvironmentOptions {
 export function setupTestEnvironment(options: TestEnvironmentOptions = {}) {
   const {
     startServer = true,
-    runMigrations = true,
-    refreshDatabase = true,
-    port = env.API_SERVER_PORT + 11,
+    runMigrations = config('testing.database.runMigrations'),
+    refreshDatabase = config('testing.database.refreshBeforeEach'),
+    port = config('testing.server.port'),
     seed,
   } = options;
 

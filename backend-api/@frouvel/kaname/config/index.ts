@@ -15,4 +15,6 @@ export type {
   CorsConfig,
   DatabaseConfig,
   JwtConfig,
+  TestingConfig,
 } from '$/config/$types';
+export type { ConfigPath } from './config';

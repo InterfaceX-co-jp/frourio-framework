@@ -14,6 +14,7 @@ export const appConfigSchema = z.object({
   timezone: z.string(),
   locale: z.string(),
   fallbackLocale: z.string(),
+  apiBasePath: z.string().default(''),
 });
 
 export type AppConfig = z.infer<typeof appConfigSchema>;
@@ -26,4 +27,5 @@ export default appConfigSchema.parse({
   timezone: process.env.TZ || 'UTC',
   locale: process.env.APP_LOCALE || 'en',
   fallbackLocale: process.env.APP_FALLBACK_LOCALE || 'en',
+  apiBasePath: process.env.API_BASE_PATH || '',
 });
