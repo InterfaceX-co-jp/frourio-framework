@@ -15,6 +15,25 @@ import type {
 import { DEFAULT_PROBLEM_TYPE } from './type/nfc9457';
 import { AbstractFrourioFrameworkError } from '../error/FrourioFrameworkError';
 
+// Align with Frourio's generated HttpStatusNoOk union in $server.ts
+type ErrorStatus =
+  | 301
+  | 302
+  | 400
+  | 401
+  | 402
+  | 403
+  | 404
+  | 405
+  | 406
+  | 409
+  | 500
+  | 501
+  | 502
+  | 503
+  | 504
+  | 505;
+
 // ============================================================================
 // Core Response Helpers
 // ============================================================================
@@ -91,12 +110,16 @@ const returnSuccess = <T>(val: T) => ({
  * Return RFC9457-compliant error response
  * @internal
  */
-function returnProblemDetails(error: unknown, defaultStatus: number = 500) {
+function returnProblemDetails(
+  error: unknown,
+  defaultStatus: ErrorStatus = 500,
+) {
   const problemDetails = errorToProblemDetails(error);
-  const status = problemDetails.status || defaultStatus;
+  const status =
+    (problemDetails.status as ErrorStatus | undefined) ?? defaultStatus;
 
   return {
-    status: status as any,
+    status,
     body: problemDetails,
   };
 }
