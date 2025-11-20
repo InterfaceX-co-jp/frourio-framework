@@ -11,7 +11,7 @@ export interface ApiResponse<T = any> {
  * API Client for integration testing
  * Provides a fluent interface for making HTTP requests to the test server
  */
-export class ApiClient {
+export class TestApiClient {
   private headers: Record<string, string> = {};
   private authToken?: string;
 

@@ -13,5 +13,5 @@ export { Factory, defineFactory, Sequence, fake } from './Factory';
 export type { FactoryFunction, FactoryBuilder } from './Factory';
 export { setupTestEnvironment } from './setup';
 export type { TestEnvironmentOptions } from './setup';
-export { ApiClient } from './ApiClient';
-export type { ApiResponse } from './ApiClient';
+export { TestApiClient } from './TestApiClient';
+export type { ApiResponse } from './TestApiClient';
