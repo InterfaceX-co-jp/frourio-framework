@@ -69,7 +69,7 @@ class DBFacade {
    * DB.register('default', prisma, 'prisma');
    * ```
    */
-  register(name: string, client: any, driver: 'prisma' | 'drizzle'): void {
+  register(name: string, client: any, driver: string): void {
     if (!this.manager) {
       // Auto-initialize if not already initialized
       this.init({

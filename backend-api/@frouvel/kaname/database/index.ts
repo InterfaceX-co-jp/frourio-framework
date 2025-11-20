@@ -17,6 +17,7 @@ export type {
   DatabaseConfig,
   ConnectionConfig,
 } from './contracts/DatabaseManager.interface';
+export type { DatabaseDriver } from './contracts/DatabaseDriver.interface';
 
 // Prisma utilities
 export {

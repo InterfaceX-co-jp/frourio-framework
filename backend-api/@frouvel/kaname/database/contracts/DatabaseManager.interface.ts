@@ -1,9 +1,11 @@
 /**
  * Database Manager Interface
- * 
+ *
  * Provides a simple facade for database operations while allowing
  * direct access to underlying ORM clients for zero performance overhead.
  */
+
+import type { DatabaseDriver } from './DatabaseDriver.interface';
 
 export interface DatabaseManager {
   /**
@@ -57,6 +59,11 @@ export interface DatabaseManager {
    * Check if a connection is established
    */
   isConnected(connection?: string): boolean;
+
+  /**
+   * Register a database driver (e.g., prisma, drizzle, etc.)
+   */
+  registerDriver(name: string, driver: DatabaseDriver): void;
 }
 
 /**
@@ -79,9 +86,9 @@ export interface DatabaseConfig {
  */
 export interface ConnectionConfig {
   /**
-   * ORM driver: 'prisma' or 'drizzle'
+   * ORM driver name (e.g., 'prisma', 'drizzle')
    */
-  driver: 'prisma' | 'drizzle';
+  driver: string;
 
   /**
    * Connection URL (for Prisma)

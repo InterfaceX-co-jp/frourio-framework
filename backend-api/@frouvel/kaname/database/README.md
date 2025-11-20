@@ -116,6 +116,22 @@ export default {
 } satisfies DatabaseConfig;
 ```
 
+### Adding a custom driver
+
+You can plug in another ORM/driver by implementing `DatabaseDriver` and registering it before use:
+
+```typescript
+import { DB, type DatabaseDriver } from '$/@frouvel/kaname/database';
+
+const myDriver: DatabaseDriver = {
+  createClient: (config) => /* return client from config */ {},
+  transaction: (client, cb) => client.transaction(cb),
+  disconnect: (client) => client.disconnect?.(),
+};
+
+DB.getManager().registerDriver('my-driver', myDriver);
+```
+
 ## API Reference
 
 ### DB.prisma()

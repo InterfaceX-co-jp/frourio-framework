@@ -2,9 +2,9 @@ import type {
   DatabaseManager as IDatabaseManager,
   ConnectionConfig,
 } from './contracts/DatabaseManager.interface';
-import type { PrismaClient } from '@prisma/client';
-import { getPrismaClient } from './PrismaClientManager';
-import { getDrizzleClient } from './DrizzleClientManager';
+import type { DatabaseDriver } from './contracts/DatabaseDriver.interface';
+import { PrismaDriver } from './drivers/PrismaDriver';
+import { DrizzleDriver } from './drivers/DrizzleDriver';
 
 /**
  * Database Manager
@@ -32,11 +32,16 @@ export class DatabaseManager implements IDatabaseManager {
   private connections: Map<string, ConnectionConfig> = new Map();
   private clients: Map<string, any> = new Map();
   private connectedClients: Set<string> = new Set();
+  private drivers: Map<string, DatabaseDriver> = new Map();
 
   constructor(config: {
     default: string;
     connections: Record<string, ConnectionConfig>;
   }) {
+    // Register built-in drivers
+    this.registerDriver('prisma', new PrismaDriver());
+    this.registerDriver('drizzle', new DrizzleDriver());
+
     this.defaultConnection = config.default;
 
     // Store connection configurations
@@ -65,7 +70,7 @@ export class DatabaseManager implements IDatabaseManager {
   /**
    * Get Prisma client for direct access (zero overhead)
    */
-  prisma<T = PrismaClient>(connection?: string): T | null {
+  prisma<T = any>(connection?: string): T | null {
     const name = connection || this.defaultConnection;
     const config = this.connections.get(name);
 
@@ -113,18 +118,8 @@ export class DatabaseManager implements IDatabaseManager {
     }
 
     const client = this.getOrCreateClient(name);
-
-    // Prisma transaction
-    if (config.driver === 'prisma') {
-      return (client as any).$transaction(callback);
-    }
-
-    // Drizzle transaction
-    if (config.driver === 'drizzle') {
-      return (client as any).transaction(callback);
-    }
-
-    throw new Error(`Unsupported driver: ${config.driver}`);
+    const driver = this.getDriver(config.driver);
+    return driver.transaction(client, callback);
   }
 
   /**
@@ -144,15 +139,8 @@ export class DatabaseManager implements IDatabaseManager {
     }
 
     try {
-      if (config.driver === 'prisma') {
-        await client.$disconnect();
-      } else if (config.driver === 'drizzle') {
-        // Drizzle disconnect logic
-        if (client.end) {
-          await client.end();
-        }
-      }
-
+      const driver = this.getDriver(config.driver);
+      await driver.disconnect(client);
       this.connectedClients.delete(name);
     } catch (error) {
       console.error(`Failed to disconnect from '${name}':`, error);
@@ -187,14 +175,24 @@ export class DatabaseManager implements IDatabaseManager {
   registerClient(
     name: string,
     client: any,
-    driver: 'prisma' | 'drizzle',
+    driver: string,
   ): void {
+    if (!this.drivers.has(driver)) {
+      throw new Error(`Unsupported driver '${driver}'. Register the driver before using it.`);
+    }
     this.clients.set(name, client);
     this.connections.set(name, {
       driver,
       // Other config doesn't matter since we're using a pre-configured client
     });
     this.connectedClients.add(name);
+  }
+
+  /**
+   * Register or override a database driver
+   */
+  registerDriver(name: string, driver: DatabaseDriver): void {
+    this.drivers.set(name, driver);
   }
 
   /**
@@ -223,41 +221,18 @@ export class DatabaseManager implements IDatabaseManager {
    * Create a new database client
    */
   private createClient(name: string, config: ConnectionConfig): any {
-    if (config.driver === 'prisma') {
-      return this.createPrismaClient(config);
-    }
-
-    if (config.driver === 'drizzle') {
-      return this.createDrizzleClient(config);
-    }
-
-    throw new Error(`Unsupported driver: ${config.driver}`);
+    const driver = this.getDriver(config.driver);
+    return driver.createClient(config, name);
   }
 
   /**
-   * Create Prisma client
+   * Get driver by name or throw
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private createPrismaClient(config: ConnectionConfig): any {
-    try {
-      return getPrismaClient();
-    } catch (error) {
-      throw new Error(`Failed to create Prisma client: ${error}`);
+  private getDriver(name: string): DatabaseDriver {
+    const driver = this.drivers.get(name);
+    if (!driver) {
+      throw new Error(`Unsupported driver: ${name}`);
     }
-  }
-
-  /**
-   * Create Drizzle client
-   */
-  private createDrizzleClient(config: ConnectionConfig): any {
-    try {
-      const connectionString = config.url;
-      if (!connectionString) {
-        throw new Error('Drizzle connection URL is required in config');
-      }
-      return getDrizzleClient(connectionString);
-    } catch (error) {
-      throw new Error(`Failed to create Drizzle client: ${error}`);
-    }
+    return driver;
   }
 }
