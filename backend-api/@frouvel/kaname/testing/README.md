@@ -300,12 +300,12 @@ const users = await factory.times(5).create();
 
 ## API Client
 
-The `ApiClient` provides a fluent interface for making HTTP requests in tests.
+The `TestApiClient` provides a fluent interface for making HTTP requests in tests.
 
 ```typescript
-import { ApiClient } from '$/@frouvel/kaname/testing';
+import { TestApiClient } from '$/@frouvel/kaname/testing';
 
-const client = new ApiClient(server);
+const client = new TestApiClient(server);
 
 // Basic requests
 await client.get('/api/users');
