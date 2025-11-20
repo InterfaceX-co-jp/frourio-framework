@@ -1,19 +1,23 @@
 import type { IUserRepository } from '../User.repository.interface';
 import { DB } from '$/@frouvel/kaname/database';
-import { users, type User } from '$/database/drizzle/schema';
+import { users } from '$/database/drizzle/schema';
 import { eq, or, like, count, desc } from 'drizzle-orm';
 import { LengthAwarePaginator } from '$/@frouvel/kaname/paginator';
 
 /**
  * Drizzle User Repository
- * 
+ *
  * Uses DB facade for database access (same pattern as Prisma repository).
  * Demonstrates ORM-agnostic repository interface.
  */
 export class UserRepositoryDrizzle implements IUserRepository {
   private db = DB.drizzle();
 
-  async paginate(args: { page: number; perPage: number; search?: string }): Promise<{
+  async paginate(args: {
+    page: number;
+    perPage: number;
+    search?: string;
+  }): Promise<{
     data: {
       id: number;
       name: string;
@@ -46,10 +50,7 @@ export class UserRepositoryDrizzle implements IUserRepository {
         .limit(args.perPage)
         .offset(args.perPage * (args.page - 1))
         .orderBy(desc(users.createdAt)),
-      this.db
-        .select({ total: count() })
-        .from(users)
-        .where(where),
+      this.db.select({ total: count() }).from(users).where(where),
     ]);
 
     return {
@@ -70,7 +71,7 @@ export class UserRepositoryDrizzle implements IUserRepository {
           createdAt: Date;
           updatedAt: Date;
         }[],
-        total: total,
+        total,
         perPage: args.perPage,
         currentPage: args.page,
       }),
@@ -88,12 +89,15 @@ export class UserRepositoryDrizzle implements IUserRepository {
   }
 
   async create(data: { name: string; email: string; age: number }) {
+    const now = new Date();
     const [user] = await this.db
       .insert(users)
       .values({
         name: data.name,
         email: data.email,
         age: data.age,
+        createdAt: now,
+        updatedAt: now,
       })
       .returning();
 
