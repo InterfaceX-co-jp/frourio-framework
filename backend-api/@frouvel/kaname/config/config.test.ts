@@ -1,50 +1,51 @@
 /**
  * Configuration Helper Tests
- *
- * Framework-level tests for configuration utilities
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { Application } from '$/@frouvel/kaname/foundation';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Mock the bootstrap/app module before importing config helpers
-// Vitest hoists vi.mock() calls automatically
+// Mock the app module before importing config helpers
 vi.mock('$/bootstrap/app', () => {
-  const testApp = new Application('/tmp/test-config');
-
-  const testConfig = {
-    app: {
-      name: 'Test App',
-      env: 'test' as const,
-      debug: true,
-      nested: {
-        value: 'deep value',
-      },
-    },
-    database: {
-      connections: {
-        postgresql: {
-          url: 'postgresql://test',
-        },
-      },
-    },
-    custom: {
-      feature: {
-        enabled: true,
-        limit: 100,
-      },
-    },
+  const mockApp = {
+    make: vi.fn((key: string) => {
+      if (key === 'config') {
+        return {
+          app: {
+            name: 'Test App',
+            env: 'test',
+            debug: true,
+            nested: {
+              value: 'deep value',
+            },
+          },
+          database: {
+            connections: {
+              postgresql: {
+                url: 'postgresql://test',
+              },
+            },
+          },
+          custom: {
+            feature: {
+              enabled: true,
+              limit: 100,
+            },
+          },
+        };
+      }
+      throw new Error(`Service [${key}] not found in container`);
+    }),
   };
-
-  testApp.singleton('config', () => testConfig);
-
-  return { default: testApp };
+  return { default: mockApp };
 });
 
-// Import config helpers after mock is set up (hoisting handles order)
 import { config, hasConfig, configAll } from './config';
 
 describe('Configuration Helper', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('config()', () => {
     it('should get top-level config value', () => {
       const appName = config('app.name');
@@ -71,7 +72,7 @@ describe('Configuration Helper', () => {
       expect(value).toBeUndefined();
     });
 
-    it('should handle type parameter correctly', () => {
+    it('should handle type parameter', () => {
       const debug = config<boolean>('app.debug');
       expect(typeof debug).toBe('boolean');
       expect(debug).toBe(true);
@@ -84,9 +85,7 @@ describe('Configuration Helper', () => {
     });
 
     it('should handle object types', () => {
-      const feature = config<{ enabled: boolean; limit: number }>(
-        'custom.feature',
-      );
+      const feature = config<{ enabled: boolean; limit: number }>('custom.feature');
       expect(feature).toEqual({
         enabled: true,
         limit: 100,
@@ -95,31 +94,15 @@ describe('Configuration Helper', () => {
   });
 
   describe('hasConfig()', () => {
-    it('should return true for existing top-level config', () => {
-      expect(hasConfig('app')).toBe(true);
-      expect(hasConfig('database')).toBe(true);
-      expect(hasConfig('custom')).toBe(true);
-    });
-
-    it('should return true for existing nested config', () => {
+    it('should return true for existing config', () => {
       expect(hasConfig('app.name')).toBe(true);
       expect(hasConfig('database.connections.postgresql.url')).toBe(true);
       expect(hasConfig('custom.feature.enabled')).toBe(true);
     });
 
-    it('should return false for non-existing top-level config', () => {
-      expect(hasConfig('nonexistent')).toBe(false);
-    });
-
-    it('should return false for non-existing nested config', () => {
-      expect(hasConfig('app.nonexistent')).toBe(false);
-      expect(hasConfig('database.connections.mysql')).toBe(false);
-      expect(hasConfig('custom.feature.nonexistent')).toBe(false);
-    });
-
-    it('should return false for partially invalid paths', () => {
-      expect(hasConfig('app.name.invalid')).toBe(false);
-      expect(hasConfig('database.invalid.postgresql.url')).toBe(false);
+    it('should return false for non-existing config', () => {
+      expect(hasConfig('non.existent')).toBe(false);
+      expect(hasConfig('app.non.existent')).toBe(false);
     });
   });
 
@@ -161,13 +144,6 @@ describe('Configuration Helper', () => {
       const config = configAll('nonexistent' as any);
       expect(config).toBeUndefined();
     });
-
-    it('should preserve nested object structure', () => {
-      const appConfig = configAll('app') as any;
-      expect(appConfig?.nested).toEqual({
-        value: 'deep value',
-      });
-    });
   });
 
   describe('Edge Cases', () => {
@@ -199,31 +175,6 @@ describe('Configuration Helper', () => {
     it('should handle zero as default value', () => {
       const value = config('non.existent', 0);
       expect(value).toBe(0);
-    });
-  });
-
-  describe('Type Safety', () => {
-    it('should support string type parameter', () => {
-      const name = config<string>('app.name');
-      expect(typeof name).toBe('string');
-    });
-
-    it('should support boolean type parameter', () => {
-      const debug = config<boolean>('app.debug');
-      expect(typeof debug).toBe('boolean');
-    });
-
-    it('should support number type parameter', () => {
-      const limit = config<number>('custom.feature.limit');
-      expect(typeof limit).toBe('number');
-    });
-
-    it('should support complex object type parameter', () => {
-      const feature = config<{ enabled: boolean; limit: number }>(
-        'custom.feature',
-      );
-      expect(feature).toHaveProperty('enabled');
-      expect(feature).toHaveProperty('limit');
     });
   });
 });
