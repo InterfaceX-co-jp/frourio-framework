@@ -2,48 +2,42 @@
  * Configuration Helper Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-// Mock the app module before importing config helpers
-vi.mock('$/bootstrap/app', () => {
-  const mockApp = {
-    make: vi.fn((key: string) => {
-      if (key === 'config') {
-        return {
-          app: {
-            name: 'Test App',
-            env: 'test',
-            debug: true,
-            nested: {
-              value: 'deep value',
-            },
-          },
-          database: {
-            connections: {
-              postgresql: {
-                url: 'postgresql://test',
-              },
-            },
-          },
-          custom: {
-            feature: {
-              enabled: true,
-              limit: 100,
-            },
-          },
-        };
-      }
-      throw new Error(`Service [${key}] not found in container`);
-    }),
-  };
-  return { default: mockApp };
-});
-
+import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import app from '$/bootstrap/app';
 import { config, hasConfig, configAll } from './config';
 
+const mockConfig = {
+  app: {
+    name: 'Test App',
+    env: 'test',
+    debug: true,
+    nested: {
+      value: 'deep value',
+    },
+  },
+  database: {
+    connections: {
+      postgresql: {
+        url: 'postgresql://test',
+      },
+    },
+  },
+  custom: {
+    feature: {
+      enabled: true,
+      limit: 100,
+    },
+  },
+};
+
 describe('Configuration Helper', () => {
+  beforeAll(() => {
+    // Register mock config in the application container for unit tests
+    app.singleton('config', () => mockConfig);
+  });
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    // No-op: placeholder for future per-test setup
   });
 
   describe('config()', () => {
