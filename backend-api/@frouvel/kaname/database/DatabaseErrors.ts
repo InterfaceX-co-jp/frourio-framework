@@ -1,6 +1,18 @@
 import { AbstractFrourioFrameworkError } from '$/@frouvel/kaname/error/FrourioFrameworkError';
 
-const DATABASE_ERROR_TYPE_BASE = 'https://example.com/errors/database';
+/**
+ * Base URI for RFC 9457 Problem Details type URIs for database errors.
+ *
+ * This URI uniquely identifies the error type and can optionally point to
+ * human-readable documentation. It does not need to be a resolvable URL.
+ *
+ * In production, you should configure this to use your actual domain:
+ * - Example: 'https://yourdomain.com/docs/errors/database'
+ * - Or use app config: config('app.url') + '/docs/errors/database'
+ *
+ * @see https://www.rfc-editor.org/rfc/rfc9457.html
+ */
+const DATABASE_ERROR_TYPE_BASE = 'urn:frourio:errors:database';
 
 export class DatabaseNotInitializedError extends AbstractFrourioFrameworkError {
   constructor() {
