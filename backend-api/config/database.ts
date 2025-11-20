@@ -1,57 +1,49 @@
-import type { DatabaseConfig } from '../@frouvel/kaname/database';
+import { z } from 'zod';
+import { defineConfig, type ConfigType } from '$/@frouvel/kaname/config';
 import { env } from '../env';
 
-/**
- * Database Configuration
- *
- * Configure database connections for your application.
- * Supports both Prisma and Drizzle ORM.
- */
-const databaseConfig = {
-  /**
-   * Default database connection
-   */
-  default: 'default',
-
-  /**
-   * Database connections
-   */
-  connections: {
-    /**
-     * Default Prisma connection
-     */
-    default: {
-      driver: 'prisma',
-      url: env.DATABASE_URL,
-      pool: {
-        min: env.DB_POOL_MIN,
-        max: env.DB_POOL_MAX,
+const databaseConfig = defineConfig({
+  schema: z.object({
+    default: z.string(),
+    connections: z.record(
+      z.object({
+        driver: z.string(),
+        url: z.string().optional(),
+        connection: z
+          .object({
+            host: z.string(),
+            port: z.number(),
+            user: z.string(),
+            password: z.string(),
+            database: z.string(),
+          })
+          .optional(),
+        pool: z
+          .object({
+            min: z.number().optional(),
+            max: z.number().optional(),
+            idleTimeoutMillis: z.number().optional(),
+          })
+          .optional(),
+      }),
+    ),
+  }),
+  load: () => ({
+    default: 'default',
+    connections: {
+      default: {
+        driver: 'prisma',
+        url: env.DATABASE_URL,
+        pool: {
+          min: env.DB_POOL_MIN,
+          max: env.DB_POOL_MAX,
+        },
       },
+      // Add additional connections here (e.g., read replicas or Drizzle)
     },
+  }),
+});
 
-    // Example: Read replica (uncomment to use)
-    // 'read-replica': {
-    //   driver: 'prisma',
-    //   url: env.READ_REPLICA_URL,
-    //   pool: {
-    //     min: 2,
-    //     max: 5,
-    //   },
-    // },
-
-    // Example: Drizzle connection (uncomment to use)
-    // analytics: {
-    //   driver: 'drizzle',
-    //   connection: {
-    //     host: env.ANALYTICS_DB_HOST,
-    //     port: env.ANALYTICS_DB_PORT,
-    //     user: env.ANALYTICS_DB_USER,
-    //     password: env.ANALYTICS_DB_PASSWORD,
-    //     database: env.ANALYTICS_DB_DATABASE,
-    //   },
-    // },
-  },
-} satisfies DatabaseConfig;
-
+export type DatabaseConfig = ConfigType<typeof databaseConfig>;
+export const databaseConfigSchema = databaseConfig.schema;
 export default databaseConfig;
-export type { DatabaseConfig };
