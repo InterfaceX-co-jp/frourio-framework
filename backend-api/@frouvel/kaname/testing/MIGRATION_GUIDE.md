@@ -41,10 +41,10 @@ describe('Users API', () => {
 
 **After (New TestCase Style):**
 ```typescript
-import { IntegrationTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class UsersTest extends IntegrationTestCase {
+class UsersTest extends TestCaseIntegration {
   run() {
     this.suite('Users API', () => {
       this.test('returns users', async () => {
@@ -101,10 +101,10 @@ describe('User Repository', () => {
 
 **After:**
 ```typescript
-import { DatabaseTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseDatabase } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class UserRepositoryTest extends DatabaseTestCase {
+class UserRepositoryTest extends TestCaseDatabase {
   run() {
     this.suite('User Repository', () => {
       this.test('creates a user', async () => {
@@ -137,10 +137,10 @@ describe('Users API', () => {
 
 **After:**
 ```typescript
-import { IntegrationTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class UsersApiTest extends IntegrationTestCase {
+class UsersApiTest extends TestCaseIntegration {
   run() {
     this.suite('Users API', () => {
       this.test('GET /api/users returns users', async () => {
@@ -202,7 +202,7 @@ afterEach(async () => {
 
 **After:**
 ```typescript
-class MyTest extends IntegrationTestCase {
+class MyTest extends TestCaseIntegration {
   protected async seed(): Promise<void> {
     await this.prisma.user.create({ data: { ... } });
   }
@@ -258,7 +258,7 @@ beforeEach(async () => {
 
 **After:**
 ```typescript
-class MyTest extends IntegrationTestCase {
+class MyTest extends TestCaseIntegration {
   private userId?: string;
 
   protected async setUp(): Promise<void> {
@@ -284,7 +284,7 @@ beforeEach(async () => {
 
 **After:**
 ```typescript
-class MyTest extends IntegrationTestCase {
+class MyTest extends TestCaseIntegration {
   private authToken?: string;
 
   protected async setUp(): Promise<void> {
@@ -312,7 +312,7 @@ beforeEach(async () => {
 
 **After:**
 ```typescript
-class MyTest extends IntegrationTestCase {
+class MyTest extends TestCaseIntegration {
   protected async seed(): Promise<void> {
     await this.prisma.user.create({
       data: {
@@ -368,7 +368,7 @@ users.test.ts
 - [ ] Updated `vite.config.mts` to use framework setup
 - [ ] Removed old `tests/setup.ts`
 - [ ] Created `tests/integration/` directory
-- [ ] Migrated all integration tests to `IntegrationTestCase`
+- [ ] Migrated all integration tests to `TestCaseIntegration`
 - [ ] Renamed test files with `.integration.test.ts` suffix
 - [ ] Updated imports to use `@frouvel/kaname/testing`
 - [ ] Ran tests to verify everything works

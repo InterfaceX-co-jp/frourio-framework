@@ -1,14 +1,14 @@
-import { DatabaseTestCase } from './DatabaseTestCase';
+import { TestCaseDatabase } from './TestCaseDatabase';
 import type { FastifyInstance } from 'fastify';
 import app from '$/bootstrap/app';
 import type { HttpKernel } from '$/@frouvel/kaname/foundation';
 import { env } from '$/env';
 
 /**
- * IntegrationTestCase provides full integration testing with server and database
+ * TestCaseIntegration provides full integration testing with server and database
  * Automatically starts a test server and manages database lifecycle
  */
-export abstract class IntegrationTestCase extends DatabaseTestCase {
+export abstract class TestCaseIntegration extends TestCaseDatabase {
   protected declare server: FastifyInstance;
   protected baseURL: string;
   private static testPort: number;
@@ -16,8 +16,8 @@ export abstract class IntegrationTestCase extends DatabaseTestCase {
   constructor() {
     super();
     // Use a different port for each test run to avoid conflicts
-    IntegrationTestCase.testPort = env.API_SERVER_PORT + 11;
-    this.baseURL = `http://localhost:${IntegrationTestCase.testPort}`;
+    TestCaseIntegration.testPort = env.API_SERVER_PORT + 11;
+    this.baseURL = `http://localhost:${TestCaseIntegration.testPort}`;
   }
 
   /**
@@ -29,7 +29,7 @@ export abstract class IntegrationTestCase extends DatabaseTestCase {
     const kernel = app.make<HttpKernel>('HttpKernel');
     this.server = await kernel.handle();
     await this.server.listen({
-      port: IntegrationTestCase.testPort,
+      port: TestCaseIntegration.testPort,
       host: '0.0.0.0',
     });
   }

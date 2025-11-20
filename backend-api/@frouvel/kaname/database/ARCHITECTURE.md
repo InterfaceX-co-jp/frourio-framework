@@ -244,10 +244,10 @@ export default {
 
 ## Testing Support
 
-### Updated DatabaseTestCase
+### Updated TestCaseDatabase
 
 ```typescript
-export abstract class DatabaseTestCase extends TestCase {
+export abstract class TestCaseDatabase extends TestCase {
   protected db = DB.connection();
   
   protected async refreshDatabase(): Promise<void> {
@@ -268,7 +268,7 @@ export abstract class DatabaseTestCase extends TestCase {
 ### Test Example
 
 ```typescript
-class UserRepositoryTest extends DatabaseTestCase {
+class UserRepositoryTest extends TestCaseDatabase {
   private repository: UserRepository;
   
   protected async setUp(): Promise<void> {
@@ -313,7 +313,7 @@ class UserRepositoryTest extends DatabaseTestCase {
 - [ ] Register in DatabaseManager
 
 ### Phase 4: Testing Support
-- [ ] Update DatabaseTestCase
+- [ ] Update TestCaseDatabase
 - [ ] Update test helpers
 - [ ] Create migration utilities
 - [ ] Add test examples

@@ -6,10 +6,10 @@ import util from 'util';
 const execPromise = util.promisify(exec);
 
 /**
- * DatabaseTestCase provides database-specific testing utilities
+ * TestCaseDatabase provides database-specific testing utilities
  * Automatically handles database migrations and cleanup
  */
-export abstract class DatabaseTestCase extends TestCase {
+export abstract class TestCaseDatabase extends TestCase {
   protected prisma: ReturnType<typeof getPrismaClient>;
   private static isMigrated = false;
 
@@ -24,16 +24,16 @@ export abstract class DatabaseTestCase extends TestCase {
   protected async setUpBeforeClass(): Promise<void> {
     await super.setUpBeforeClass();
 
-    if (!DatabaseTestCase.isMigrated) {
+    if (!TestCaseDatabase.isMigrated) {
       try {
         await execPromise('npx prisma migrate deploy --schema=./database/prisma/schema.prisma');
-        DatabaseTestCase.isMigrated = true;
+        TestCaseDatabase.isMigrated = true;
       } catch (error) {
         console.error('Migration failed:', error);
         console.log('Resetting test database...');
         try {
           await execPromise('npx prisma migrate reset --force --schema=./database/prisma/schema.prisma');
-          DatabaseTestCase.isMigrated = true;
+          TestCaseDatabase.isMigrated = true;
         } catch (resetError) {
           console.error('Database reset failed:', resetError);
           throw resetError;

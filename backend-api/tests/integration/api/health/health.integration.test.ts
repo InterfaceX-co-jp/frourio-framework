@@ -1,12 +1,12 @@
 import { expect } from 'vitest';
-import { IntegrationTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
 
 /**
  * Example Integration Test for Health Endpoint
  *
- * This test demonstrates the basic usage of IntegrationTestCase
+ * This test demonstrates the basic usage of TestCaseIntegration
  */
-class HealthIntegrationTest extends IntegrationTestCase {
+class HealthIntegrationTest extends TestCaseIntegration {
   run() {
     this.suite('Health API', () => {
       this.test('GET /api/health returns OK', async () => {

@@ -256,10 +256,10 @@ The project includes a comprehensive testing framework at `@frouvel/kaname/testi
 ### Quick Start
 
 ```typescript
-import { IntegrationTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class MyTest extends IntegrationTestCase {
+class MyTest extends TestCaseIntegration {
   run() {
     this.suite('My Test Suite', () => {
       this.test('my test', async () => {
@@ -291,7 +291,7 @@ npm test -- --coverage
 
 ### Features
 
-- **Test Case Classes**: `TestCase`, `DatabaseTestCase`, `IntegrationTestCase`
+- **Test Case Classes**: `TestCase`, `TestCaseDatabase`, `TestCaseIntegration`
 - **Factory Pattern**: Generate test data with `Factory` and `fake` helpers
 - **API Client**: Fluent HTTP request interface
 - **Automatic Setup**: Database migrations, seeding, and cleanup

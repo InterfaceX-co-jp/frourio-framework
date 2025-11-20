@@ -268,13 +268,13 @@ export class AnalyticsService {
 
 ## Testing Support
 
-The `DatabaseTestCase` works seamlessly with the DB facade:
+The `TestCaseDatabase` works seamlessly with the DB facade:
 
 ```typescript
-import { DatabaseTestCase, DB } from '$/@frouvel/kaname/testing';
+import { TestCaseDatabase, DB } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class UserRepositoryTest extends DatabaseTestCase {
+class UserRepositoryTest extends TestCaseDatabase {
   private repository: UserRepository;
 
   protected async setUp() {
@@ -400,7 +400,7 @@ const users = await DB.prisma('custom').user.findMany();
 2. **Repository Pattern**: Encapsulate data access in repository classes
 3. **Connection Names**: Use descriptive names (`primary`, `read-replica`, `analytics`)
 4. **Transactions**: Always use `DB.transaction()` for multiple operations
-5. **Testing**: Use `DatabaseTestCase` for integration tests
+5. **Testing**: Use `TestCaseDatabase` for integration tests
 6. **Read Replicas**: Route read-heavy operations to read replicas
 
 ## Troubleshooting

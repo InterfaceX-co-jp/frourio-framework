@@ -1,12 +1,12 @@
 /* eslint-disable max-lines */
-import { DatabaseTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseDatabase } from '$/@frouvel/kaname/testing';
 import { UserRepositoryDrizzle } from '$/domain/user/repository/drizzle/User.repository';
 import { DB } from '$/@frouvel/kaname/database';
 import { users } from '$/database/drizzle/schema';
 import { getDrizzleClient } from '$/@frouvel/kaname/database';
 import { expect } from 'vitest';
 
-class UserRepositoryDrizzleTest extends DatabaseTestCase {
+class UserRepositoryDrizzleTest extends TestCaseDatabase {
   private repository!: UserRepositoryDrizzle;
   private db!: ReturnType<typeof getDrizzleClient>;
 

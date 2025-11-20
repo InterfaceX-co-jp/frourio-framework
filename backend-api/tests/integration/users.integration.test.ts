@@ -5,7 +5,7 @@ import { fake } from '$/@frouvel/kaname/testing';
 /**
  * Example Test demonstrating testing utilities
  *
- * NOTE: This uses TestCase (not IntegrationTestCase) because
+ * NOTE: This uses TestCase (not TestCaseIntegration) because
  * it doesn't need database or HTTP server functionality.
  */
 class TestingUtilitiesTest extends TestCase {

@@ -9,8 +9,8 @@ Comprehensive testing utilities for the frourio-framework, providing a clean and
 - [Quick Start](#quick-start)
 - [Test Cases](#test-cases)
   - [TestCase](#testcase)
-  - [DatabaseTestCase](#databasetestcase)
-  - [IntegrationTestCase](#integrationtestcase)
+  - [TestCaseDatabase](#testcasedatabase)
+  - [TestCaseIntegration](#testcaseintegration)
 - [Factories](#factories)
 - [API Client](#api-client)
 - [Setup & Configuration](#setup--configuration)
@@ -57,10 +57,10 @@ export default defineConfig({
 ### 2. Create Your First Test
 
 ```typescript
-import { IntegrationTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class MyFirstTest extends IntegrationTestCase {
+class MyFirstTest extends TestCaseIntegration {
   run() {
     this.suite('My First Test Suite', () => {
       this.test('can make a request', async () => {
@@ -127,15 +127,15 @@ class MyTest extends TestCase {
 new MyTest().run();
 ```
 
-### DatabaseTestCase
+### TestCaseDatabase
 
 Extends `TestCase` with database functionality. Automatically handles migrations and cleanup.
 
 ```typescript
-import { DatabaseTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseDatabase } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class MyDatabaseTest extends DatabaseTestCase {
+class MyDatabaseTest extends TestCaseDatabase {
   protected async seed(): Promise<void> {
     // Seed data before each test
     await this.prisma.user.create({
@@ -178,15 +178,15 @@ class MyDatabaseTest extends DatabaseTestCase {
 new MyDatabaseTest().run();
 ```
 
-### IntegrationTestCase
+### TestCaseIntegration
 
-Extends `DatabaseTestCase` with full HTTP server testing capabilities.
+Extends `TestCaseDatabase` with full HTTP server testing capabilities.
 
 ```typescript
-import { IntegrationTestCase } from '$/@frouvel/kaname/testing';
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
 import { expect } from 'vitest';
 
-class MyIntegrationTest extends IntegrationTestCase {
+class MyIntegrationTest extends TestCaseIntegration {
   run() {
     this.suite('API Integration Tests', () => {
       this.test('can make HTTP requests', async () => {
@@ -390,7 +390,7 @@ tests/unit/services/UserService.test.ts
 ### 3. Seed Data in setUp/seed Methods
 
 ```typescript
-class MyTest extends IntegrationTestCase {
+class MyTest extends TestCaseIntegration {
   protected async seed(): Promise<void> {
     // Seed data here
     await this.prisma.user.createMany({ ... });
@@ -430,7 +430,7 @@ this.test('can delete user', async () => { ... });
 ### Testing with Authentication
 
 ```typescript
-class AuthTest extends IntegrationTestCase {
+class AuthTest extends TestCaseIntegration {
   private token?: string;
 
   protected async setUp(): Promise<void> {
@@ -467,7 +467,7 @@ class AuthTest extends IntegrationTestCase {
 ### Testing Pagination
 
 ```typescript
-class PaginationTest extends IntegrationTestCase {
+class PaginationTest extends TestCaseIntegration {
   protected async seed(): Promise<void> {
     // Create 25 users
     await this.prisma.user.createMany({
@@ -506,7 +506,7 @@ class PaginationTest extends IntegrationTestCase {
 ### Testing Error Responses (RFC9457)
 
 ```typescript
-class ErrorHandlingTest extends IntegrationTestCase {
+class ErrorHandlingTest extends TestCaseIntegration {
   run() {
     this.suite('Error Handling', () => {
       this.test('returns RFC9457 Problem Details', async () => {
