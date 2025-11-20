@@ -34,3 +34,12 @@ export {
   disconnectDrizzleClient,
   resetDrizzleConnection,
 } from './DrizzleClientManager';
+
+// Database-specific errors
+export {
+  DatabaseNotInitializedError,
+  DatabaseConnectionNotConfiguredError,
+  UnsupportedDatabaseDriverError,
+  DatabaseClientUnavailableError,
+  DatabaseClientCreationError,
+} from './DatabaseErrors';

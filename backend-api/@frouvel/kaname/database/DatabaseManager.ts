@@ -5,6 +5,12 @@ import type {
 import type { DatabaseDriver } from './contracts/DatabaseDriver.interface';
 import { PrismaDriver } from './drivers/PrismaDriver';
 import { DrizzleDriver } from './drivers/DrizzleDriver';
+import {
+  DatabaseClientCreationError,
+  DatabaseConnectionNotConfiguredError,
+  DatabaseNotInitializedError,
+  UnsupportedDatabaseDriverError,
+} from './DatabaseErrors';
 
 /**
  * Database Manager
@@ -62,7 +68,7 @@ export class DatabaseManager implements IDatabaseManager {
    */
   setDefaultConnection(name: string): void {
     if (!this.connections.has(name)) {
-      throw new Error(`Connection '${name}' is not configured`);
+      throw new DatabaseConnectionNotConfiguredError(name);
     }
     this.defaultConnection = name;
   }
@@ -114,7 +120,7 @@ export class DatabaseManager implements IDatabaseManager {
     const config = this.connections.get(name);
 
     if (!config) {
-      throw new Error(`Connection '${name}' is not configured`);
+      throw new DatabaseConnectionNotConfiguredError(name);
     }
 
     const client = this.getOrCreateClient(name);
@@ -130,12 +136,12 @@ export class DatabaseManager implements IDatabaseManager {
     const client = this.clients.get(name);
 
     if (!client) {
-      return;
+      throw new DatabaseNotInitializedError();
     }
 
     const config = this.connections.get(name);
     if (!config) {
-      return;
+      throw new DatabaseConnectionNotConfiguredError(name);
     }
 
     try {
@@ -178,7 +184,7 @@ export class DatabaseManager implements IDatabaseManager {
     driver: string,
   ): void {
     if (!this.drivers.has(driver)) {
-      throw new Error(`Unsupported driver '${driver}'. Register the driver before using it.`);
+      throw new UnsupportedDatabaseDriverError(driver);
     }
     this.clients.set(name, client);
     this.connections.set(name, {
@@ -206,7 +212,7 @@ export class DatabaseManager implements IDatabaseManager {
 
     const config = this.connections.get(name);
     if (!config) {
-      throw new Error(`Connection '${name}' is not configured`);
+      throw new DatabaseConnectionNotConfiguredError(name);
     }
 
     // Create new client based on driver
@@ -222,7 +228,11 @@ export class DatabaseManager implements IDatabaseManager {
    */
   private createClient(name: string, config: ConnectionConfig): any {
     const driver = this.getDriver(config.driver);
-    return driver.createClient(config, name);
+    try {
+      return driver.createClient(config, name);
+    } catch (error) {
+      throw new DatabaseClientCreationError(config.driver, error);
+    }
   }
 
   /**
@@ -231,7 +241,7 @@ export class DatabaseManager implements IDatabaseManager {
   private getDriver(name: string): DatabaseDriver {
     const driver = this.drivers.get(name);
     if (!driver) {
-      throw new Error(`Unsupported driver: ${name}`);
+      throw new UnsupportedDatabaseDriverError(name);
     }
     return driver;
   }

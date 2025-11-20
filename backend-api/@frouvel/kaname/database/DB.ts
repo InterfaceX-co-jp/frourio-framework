@@ -4,6 +4,7 @@ import type {
   DatabaseConfig,
   DatabaseManager as IDatabaseManager,
 } from './contracts/DatabaseManager.interface';
+import { DatabaseNotInitializedError } from './DatabaseErrors';
 
 /**
  * DB Facade
@@ -51,9 +52,7 @@ class DBFacade {
    */
   getManager(): IDatabaseManager {
     if (!this.manager) {
-      throw new Error(
-        'Database manager not initialized. Call DB.init(config) first or use the DatabaseServiceProvider.',
-      );
+      throw new DatabaseNotInitializedError();
     }
     return this.manager;
   }
