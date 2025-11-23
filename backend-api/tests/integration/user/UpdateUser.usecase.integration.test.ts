@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
+import { TestCaseDatabase } from '$/@frouvel/kaname/testing';
 import { fake } from '$/@frouvel/kaname/testing';
 import { UpdateUserUseCase } from '$/domain/user/usecase/UpdateUser.usecase';
 import { UserRepositoryDrizzle } from '$/domain/user/repository/drizzle/User.repository';
@@ -9,7 +9,7 @@ import { UserRepositoryDrizzle } from '$/domain/user/repository/drizzle/User.rep
  *
  * Tests the UpdateUserUseCase with real database operations
  */
-class UpdateUserUseCaseIntegrationTest extends TestCaseIntegration {
+class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
   run() {
     this.suite('UpdateUserUseCase Integration Tests', () => {
       this.test('can update user name', async () => {
