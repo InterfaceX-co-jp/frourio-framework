@@ -24,6 +24,11 @@ jobs:
           POSTGRES_DB: test
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -57,11 +62,24 @@ jobs:
         run: npm run lint --prefix frontend-web
       - name: Execute backend lint
         run: npm run lint --prefix backend-api
-      - name: Setup DB
-        run: |
-          sudo systemctl start postgresql.service
-      - run: npm run generate
-      - run: npm run typecheck
+      - name: Generate code
+        run: npm run generate
+        env:
+          API_SERVER_PORT: ${{ env.API_SERVER_PORT }}
+          API_ORIGIN: ${{ env.API_ORIGIN }}
+          API_BASE_PATH: ${{ env.API_BASE_PATH }}
+          API_JWT_SECRET: ${{ env.API_JWT_SECRET }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          TEST_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Type check
+        run: npm run typecheck
+        env:
+          API_SERVER_PORT: ${{ env.API_SERVER_PORT }}
+          API_ORIGIN: ${{ env.API_ORIGIN }}
+          API_BASE_PATH: ${{ env.API_BASE_PATH }}
+          API_JWT_SECRET: ${{ env.API_JWT_SECRET }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          TEST_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
       - name: Test
         run: |
           export NODE_OPTIONS="--max_old_space_size=4000"
