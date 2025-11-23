@@ -6,7 +6,6 @@
  */
 
 import type { Application, ServiceProvider } from '../Application';
-import { config } from '../../config';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import type { FastifyInstance } from 'fastify';
@@ -16,7 +15,7 @@ export class SentryServiceProvider implements ServiceProvider {
    * Register Sentry services
    */
   register(app: Application): void {
-    const sentryConfig = config('sentry');
+    const sentryConfig = this.getSentryConfig(app);
 
     // Only initialize if enabled and DSN is provided
     if (!sentryConfig?.enabled || !sentryConfig?.dsn) {
@@ -62,7 +61,7 @@ export class SentryServiceProvider implements ServiceProvider {
    * Sets up Fastify error handlers and request tracing
    */
   async boot(app: Application): Promise<void> {
-    const sentryConfig = config('sentry');
+    const sentryConfig = this.getSentryConfig(app);
 
     if (!sentryConfig?.enabled || !sentryConfig?.dsn) {
       return;
@@ -78,12 +77,25 @@ export class SentryServiceProvider implements ServiceProvider {
           '[SentryServiceProvider] Fastify error handling integrated with Sentry',
         );
       }
-    } catch (error) {
+    } catch {
       // Fastify instance not available (Console kernel or not yet initialized)
-      console.error(
+      console.log(
         '[SentryServiceProvider] Fastify instance not available, skipping HTTP integration',
-        error,
       );
+    }
+  }
+
+  /**
+   * Get Sentry configuration from application container
+   */
+
+  private getSentryConfig(app: Application): any {
+    try {
+      const config = app.make<Record<string, any>>('config');
+      return config.sentry;
+    } catch {
+      // Config not loaded yet (e.g., during bootstrapping or in test environment)
+      return null;
     }
   }
 
