@@ -6,6 +6,7 @@
  */
 
 import type { Application, ServiceProvider } from '../Application';
+import { config } from '../../config';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import type { FastifyInstance } from 'fastify';
@@ -15,19 +16,7 @@ export class SentryServiceProvider implements ServiceProvider {
    * Register Sentry services
    */
   register(app: Application): void {
-    // Get Sentry config from container
-    let sentryConfig;
-    try {
-      const config = app.make<Record<string, any>>('config');
-      sentryConfig = config.sentry;
-    } catch (error) {
-      console.error(error);
-      // Config not loaded yet, skip initialization
-      console.log(
-        '[SentryServiceProvider] Config not loaded, skipping Sentry initialization',
-      );
-      return;
-    }
+    const sentryConfig = config('sentry');
 
     // Only initialize if enabled and DSN is provided
     if (!sentryConfig?.enabled || !sentryConfig?.dsn) {
@@ -47,6 +36,16 @@ export class SentryServiceProvider implements ServiceProvider {
 
     Sentry.init({
       dsn: sentryConfig.dsn,
+      environment: sentryConfig.environment,
+      release: sentryConfig.release,
+      tracesSampleRate: sentryConfig.tracesSampleRate,
+      profilesSampleRate: sentryConfig.profilesSampleRate,
+      debug: sentryConfig.debug,
+      serverName: sentryConfig.serverName,
+      attachStacktrace: sentryConfig.attachStacktrace,
+      integrations,
+      beforeSend: sentryConfig.beforeSend,
+      beforeSendTransaction: sentryConfig.beforeSendTransaction,
     });
 
     // Register Sentry client in container
@@ -63,15 +62,7 @@ export class SentryServiceProvider implements ServiceProvider {
    * Sets up Fastify error handlers and request tracing
    */
   async boot(app: Application): Promise<void> {
-    // Get Sentry config
-    let sentryConfig;
-    try {
-      const config = app.make<Record<string, any>>('config');
-      sentryConfig = config.sentry;
-    } catch (error) {
-      console.error(error);
-      return;
-    }
+    const sentryConfig = config('sentry');
 
     if (!sentryConfig?.enabled || !sentryConfig?.dsn) {
       return;
@@ -88,10 +79,10 @@ export class SentryServiceProvider implements ServiceProvider {
         );
       }
     } catch (error) {
-      console.error(error);
       // Fastify instance not available (Console kernel or not yet initialized)
-      console.log(
+      console.error(
         '[SentryServiceProvider] Fastify instance not available, skipping HTTP integration',
+        error,
       );
     }
   }
