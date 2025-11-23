@@ -6,10 +6,10 @@
  */
 
 /**
- * Re-export ProblemDetails from commonTypesWithClient to ensure type consistency
+ * Re-export ProblemDetails from @fullstack/shared-types to ensure type consistency
  * across backend and frontend
  */
-export type { ProblemDetails } from 'commonTypesWithClient';
+export type { ProblemDetails } from '@fullstack/shared-types';
 
 /**
  * Option type for creating a ProblemDetails object

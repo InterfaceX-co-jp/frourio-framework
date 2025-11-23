@@ -1,5 +1,5 @@
 import type { DefineMethods } from 'aspida';
-import type { ProblemDetails } from 'commonTypesWithClient';
+import type { ProblemDetails } from '@fullstack/shared-types';
 
 /**
  * User Management API

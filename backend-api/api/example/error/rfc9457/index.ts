@@ -1,5 +1,5 @@
 import type { DefineMethods } from 'aspida';
-import type { ApiResponse } from 'commonTypesWithClient';
+import type { ApiResponse } from '@fullstack/shared-types';
 
 export type Methods = DefineMethods<{
   /**

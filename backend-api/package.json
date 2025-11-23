@@ -74,7 +74,7 @@
     "@types/node": "^24.10.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
-    "commonTypesWithClient": "file:./commonTypesWithClient",
+    "@fullstack/shared-types": "file:./@fullstackSharedTypes",
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.7",
     "esbuild": "^0.25.0",

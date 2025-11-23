@@ -8,7 +8,7 @@
  * @see https://www.rfc-editor.org/rfc/rfc9457.html
  */
 
-import type { ProblemDetails } from 'commonTypesWithClient';
+import type { ProblemDetails } from '@fullstack/shared-types';
 import type { CreateProblemDetailsOptions } from './type/nfc9457';
 import { DEFAULT_PROBLEM_TYPE } from './type/nfc9457';
 import { AbstractFrourioFrameworkError } from '../error/FrourioFrameworkError';
