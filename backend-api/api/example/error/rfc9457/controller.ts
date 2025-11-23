@@ -63,7 +63,7 @@ export default defineController(() => ({
 
       return ApiResponse.success({ message: 'Request processed successfully' });
     } catch (error) {
-      return ApiResponse.method.post(error);
+      return ApiResponse.method.post.error(error);
     }
   },
 
@@ -93,7 +93,7 @@ export default defineController(() => ({
       throw new Error('Unexpected database error');
     } catch (error) {
       // ApiResponse.method.delete automatically converts to RFC9457 format
-      return ApiResponse.method.delete(error);
+      return ApiResponse.method.delete.error(error);
     }
   },
 

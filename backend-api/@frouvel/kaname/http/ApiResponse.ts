@@ -100,7 +100,7 @@ function errorToProblemDetails(error: unknown): ProblemDetails {
  * @internal
  */
 const returnSuccess = <T>(val: T) => ({
-  status: 200,
+  status: 200 as const,
   body: val,
 });
 
@@ -175,7 +175,7 @@ function returnBadRequest(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 400,
+    status: 400 as const,
     body: problemDetails,
   };
 }
@@ -193,7 +193,7 @@ function returnUnauthorized(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 401,
+    status: 401 as const,
     body: problemDetails,
   };
 }
@@ -211,7 +211,7 @@ function returnForbidden(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 403,
+    status: 403 as const,
     body: problemDetails,
   };
 }
@@ -229,7 +229,7 @@ function returnNotFound(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 404,
+    status: 404 as const,
     body: problemDetails,
   };
 }
@@ -247,7 +247,7 @@ function returnConflict(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 409,
+    status: 409 as const,
     body: problemDetails,
   };
 }
@@ -268,7 +268,7 @@ function returnInternalServerError(
   });
 
   return {
-    status: 500,
+    status: 500 as const,
     body: problemDetails,
   };
 }
@@ -364,15 +364,15 @@ export const ApiResponse = {
    */
   method: {
     /** Handle GET request errors (default: 404 Not Found) */
-    get: returnGetError,
+    get: { error: returnGetError },
     /** Handle POST request errors (default: 500 Internal Server Error) */
-    post: returnPostError,
+    post: { error: returnPostError },
     /** Handle PUT request errors (default: 500 Internal Server Error) */
-    put: returnPutError,
+    put: { error: returnPutError },
     /** Handle PATCH request errors (default: 403 Forbidden) */
-    patch: returnPatchError,
+    patch: { error: returnPatchError },
     /** Handle DELETE request errors (default: 500 Internal Server Error) */
-    delete: returnDeleteError,
+    delete: { error: returnDeleteError },
   },
 
   /**

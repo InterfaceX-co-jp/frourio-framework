@@ -26,13 +26,15 @@ export default defineController(() => ({
         perPage: query.limit,
         search: query.search,
       })
-      .then((result) =>
-        ApiResponse.success({
+      .then((result) => {
+        const res = ApiResponse.success({
           data: result.users,
           meta: result.meta.toResponse().meta,
-        }),
-      )
-      .catch(ApiResponse.method.get);
+        });
+
+        return res;
+      })
+      .catch(ApiResponse.method.get.error);
   },
 
   /**
@@ -59,6 +61,6 @@ export default defineController(() => ({
           createdAt: user.createdAt.toISOString(),
         }),
       )
-      .catch(ApiResponse.method.post);
+      .catch(ApiResponse.method.post.error);
   },
 }));
