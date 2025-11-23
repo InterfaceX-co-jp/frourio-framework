@@ -1,4 +1,4 @@
-import { DEFAULT_PROBLEM_TYPE } from '@fullstack/shared-types/ProblemDetails.types';
+import { DEFAULT_PROBLEM_TYPE } from '$/@fullstackSharedTypes';
 import type { ProblemDetails } from '.';
 
 export enum ErrorCode {

@@ -1,7 +1,11 @@
 import type { IUserRepository } from '../repository/User.repository.interface';
 
 export class PaginateUserUsecase {
-  constructor(private readonly _userRepository: IUserRepository) {}
+  private readonly _userRepository: IUserRepository;
+
+  constructor(args: { userRepository: IUserRepository }) {
+    this._userRepository = args.userRepository;
+  }
 
   async execute(args: { page: number; perPage: number; search?: string }) {
     const { data: users, meta } = await this._userRepository.paginate({

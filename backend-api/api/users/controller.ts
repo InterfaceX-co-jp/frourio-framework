@@ -6,8 +6,8 @@
 
 import { defineController } from './$relay';
 import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
-import { DB } from '$/@frouvel/kaname/database';
 import app from '$/bootstrap/app';
+import type { CreateUserUseCase } from '$/domain/user/usecase/CreateUser.usecase';
 import type { PaginateUserUsecase } from '$/domain/user/usecase/PaginateUser.usecase';
 
 export default defineController(() => ({
@@ -26,13 +26,15 @@ export default defineController(() => ({
         perPage: query.limit,
         search: query.search,
       })
-      .then((result) =>
-        ApiResponse.success({
+      .then((result) => {
+        const res = ApiResponse.success({
           data: result.users,
           meta: result.meta.toResponse().meta,
-        }),
-      )
-      .catch(ApiResponse.method.get);
+        });
+
+        return res;
+      })
+      .catch(ApiResponse.method.get.error);
   },
 
   /**
@@ -40,25 +42,15 @@ export default defineController(() => ({
    * Example: Direct Prisma usage with validation
    */
   post: ({ body }) => {
-    const prisma = DB.prisma();
+    const createUserUseCase = app.make<CreateUserUseCase>('CreateUserUseCase');
 
-    return prisma.user
-      .create({
-        data: {
-          name: body.name,
-          email: body.email,
-          age: body.age,
-        },
+    return createUserUseCase
+      .execute({
+        name: body.name,
+        email: body.email,
+        age: body.age,
       })
-      .then((user) =>
-        ApiResponse.success({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          age: user.age,
-          createdAt: user.createdAt.toISOString(),
-        }),
-      )
-      .catch(ApiResponse.method.post);
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.post.error);
   },
 }));

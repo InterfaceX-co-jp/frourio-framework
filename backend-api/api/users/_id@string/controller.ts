@@ -1,77 +1,59 @@
 /**
- * User Detail Controller Example
+ * User Detail Controller
  *
- * Demonstrates single resource operations with DB facade
+ * Demonstrates single resource operations using UseCases
  */
 
 import { defineController } from './$relay';
 import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
-import { DB } from '$/@frouvel/kaname/database';
+import { getApp } from '$/@frouvel/kaname/foundation';
+import type { FindUserByIdUseCase } from '$/domain/user/usecase/FindUserById.usecase';
+import type { UpdateUserUseCase } from '$/domain/user/usecase/UpdateUser.usecase';
+import type { DeleteUserByIdUseCase } from '$/domain/user/usecase/DeleteUserById.usecase';
 
-export default defineController(() => ({
+export default defineController((fastify) => ({
   /**
    * GET /users/:id
-   * Example: Finding a single resource
+   * Uses FindUserByIdUseCase for fetching user details
    */
   get: ({ params }) => {
-    const prisma = DB.prisma();
+    const app = getApp(fastify);
     const userId = parseInt(params.id, 10);
 
-    return prisma.user
-      .findUnique({ where: { id: userId } })
-      .then((user) => {
-        if (!user) {
-          return ApiResponse.notFound('User not found', { userId });
-        }
-
-        return ApiResponse.success({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          age: user.age,
-          createdAt: user.createdAt.toISOString(),
-          updatedAt: user.updatedAt.toISOString(),
-        });
-      })
-      .catch(ApiResponse.method.get);
+    return app
+      .make<FindUserByIdUseCase>('FindUserByIdUseCase')
+      .execute({ id: userId })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.get.error);
   },
 
   /**
    * PATCH /users/:id
-   * Example: Updating a resource
+   * Uses UpdateUserUseCase for updating user information
    */
   patch: ({ params, body }) => {
-    const prisma = DB.prisma();
+    const app = getApp(fastify);
     const userId = parseInt(params.id, 10);
 
-    return prisma.user
-      .update({
-        where: { id: userId },
-        data: body,
-      })
-      .then((user) =>
-        ApiResponse.success({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          age: user.age,
-          updatedAt: user.updatedAt.toISOString(),
-        }),
-      )
-      .catch(ApiResponse.method.patch);
+    return app
+      .make<UpdateUserUseCase>('UpdateUserUseCase')
+      .execute({ id: userId, data: body })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.patch.error);
   },
 
   /**
    * DELETE /users/:id
-   * Example: Deleting a resource
+   * Uses DeleteUserByIdUseCase for deleting users
    */
   delete: ({ params }) => {
-    const prisma = DB.prisma();
+    const app = getApp(fastify);
     const userId = parseInt(params.id, 10);
 
-    return prisma.user
-      .delete({ where: { id: userId } })
-      .then(() => ApiResponse.success({ success: true as const }))
-      .catch(ApiResponse.method.delete);
+    return app
+      .make<DeleteUserByIdUseCase>('DeleteUserByIdUseCase')
+      .execute({ id: userId })
+      .then(ApiResponse.success)
+      .catch(ApiResponse.method.delete.error);
   },
 }));

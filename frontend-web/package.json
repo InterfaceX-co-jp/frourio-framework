@@ -14,7 +14,7 @@
     "generate": "concurrently --names=\"📂:path,🛡️:aspida\" \"npm run generate:path\" \"npm run generate:aspida\" -c blue",
     "generate:path": "pathpida --enableStatic --ignorePath .gitignore",
     "generate:aspida": "aspida --config aspida.config.cjs",
-    "test": "vitest run --pool=forks",
+    "test": "vitest run --pool=threads",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",

@@ -121,6 +121,10 @@ export class UserRepositoryDrizzle implements IUserRepository {
       .where(eq(users.id, args.id))
       .returning();
 
+    if (!user) {
+      throw new Error(`User with id ${args.id} not found`);
+    }
+
     return user;
   }
 

@@ -14,7 +14,7 @@
     "test": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run test:client\" \"npm run test:server\" -c blue,cyan",
     "test:client": "npm run test --prefix frontend-web",
     "test:server": "npm run test --prefix backend-api",
-    "typecheck": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run typecheck:client\" \"npm run typecheck:server\" -c blue,cyan",
+    "typecheck": "concurrently --raw --names=\"Frontend(Web),Backend(API)\" \"npm run typecheck:client\" \"npm run typecheck:server\" -c blue,cyan",
     "typecheck:client": "npm run typecheck --prefix frontend-web",
     "typecheck:server": "npm run typecheck --prefix backend-api",
     "lint": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run lint:client\" \"npm run lint:server\" -c blue,cyan",

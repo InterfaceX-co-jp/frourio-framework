@@ -24,6 +24,7 @@ const swaggerConfig = defineConfig({
   schema: z.object({
     enabled: z.boolean(),
     path: z.string(),
+    apiBasePath: z.string().optional(),
     title: z.string(),
     version: z.string(),
     description: z.string().optional(),
@@ -46,6 +47,7 @@ const swaggerConfig = defineConfig({
     return {
       enabled,
       path: env.SWAGGER_PATH || '/api-docs',
+      apiBasePath: '/api',
       title: env.SWAGGER_TITLE || env.APP_NAME || 'API',
       version: env.SWAGGER_VERSION || '1.0.0',
       description: env.SWAGGER_DESCRIPTION || 'API Documentation',

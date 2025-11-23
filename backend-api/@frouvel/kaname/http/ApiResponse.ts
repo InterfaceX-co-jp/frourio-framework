@@ -177,7 +177,7 @@ function returnBadRequest(detail: string, extensions?: Record<string, any>) {
   return {
     status: 400 as const,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -195,7 +195,7 @@ function returnUnauthorized(detail: string, extensions?: Record<string, any>) {
   return {
     status: 401 as const,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -213,7 +213,7 @@ function returnForbidden(detail: string, extensions?: Record<string, any>) {
   return {
     status: 403 as const,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -231,7 +231,7 @@ function returnNotFound(detail: string, extensions?: Record<string, any>) {
   return {
     status: 404 as const,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -249,7 +249,7 @@ function returnConflict(detail: string, extensions?: Record<string, any>) {
   return {
     status: 409 as const,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -270,7 +270,7 @@ function returnInternalServerError(
   return {
     status: 500 as const,
     body: problemDetails,
-  } as const;
+  };
 }
 
 // ============================================================================
@@ -364,15 +364,15 @@ export const ApiResponse = {
    */
   method: {
     /** Handle GET request errors (default: 404 Not Found) */
-    get: returnGetError,
+    get: { error: returnGetError },
     /** Handle POST request errors (default: 500 Internal Server Error) */
-    post: returnPostError,
+    post: { error: returnPostError },
     /** Handle PUT request errors (default: 500 Internal Server Error) */
-    put: returnPutError,
+    put: { error: returnPutError },
     /** Handle PATCH request errors (default: 403 Forbidden) */
-    patch: returnPatchError,
+    patch: { error: returnPatchError },
     /** Handle DELETE request errors (default: 500 Internal Server Error) */
-    delete: returnDeleteError,
+    delete: { error: returnDeleteError },
   },
 
   /**
