@@ -3,10 +3,12 @@
  *
  * Provides database abstraction supporting Prisma and Drizzle ORM.
  * Use the DB facade for ORM-agnostic access with zero performance overhead.
+ * Use the Cache facade for Laravel-style Redis caching operations.
  */
 
-// DB Facade (recommended)
+// Facades (recommended)
 export { DB } from './DB';
+export { Cache } from './Cache';
 
 // Database Manager
 export { DatabaseManager } from './DatabaseManager';
@@ -34,6 +36,16 @@ export {
   disconnectDrizzleClient,
   resetDrizzleConnection,
 } from './DrizzleClientManager';
+
+// Redis utilities
+export {
+  getRedisClient,
+  getRedisClientSync,
+  disconnectRedisClient,
+  checkRedisConnection,
+  resetRedisConnection,
+  withRetry as withRedisRetry,
+} from './RedisClientManager';
 
 // Database-specific errors
 export {

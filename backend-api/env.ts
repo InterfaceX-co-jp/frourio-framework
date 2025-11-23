@@ -69,6 +69,17 @@ export const envSchema = z.object({
     .pipe(z.boolean())
     .default('false'),
   SENTRY_DSN: z.string().optional(),
+
+  // Redis Cache
+  REDIS_URL: z.string().optional(),
+  REDIS_HOST: z.string().optional().default('localhost'),
+  REDIS_PORT: z.string().optional().default('6379'),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_DB: z.string().optional().default('0'),
+  REDIS_MAX_RETRIES: z.string().optional().default('3'),
+  REDIS_RETRY_DELAY: z.string().optional().default('1000'),
+  REDIS_KEY_PREFIX: z.string().optional(),
+  REDIS_DEFAULT_TTL: z.string().optional(),
 });
 
 // In test environment, don't exit on validation errors to allow tests to run

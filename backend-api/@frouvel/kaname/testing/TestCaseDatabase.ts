@@ -1,3 +1,4 @@
+import { describe } from 'vitest';
 import { TestCase } from './TestCase';
 import { getPrismaClient } from '$/@frouvel/kaname/database';
 import { exec } from 'child_process';
@@ -13,26 +14,56 @@ export abstract class TestCaseDatabase extends TestCase {
   protected prisma: ReturnType<typeof getPrismaClient>;
   private static isMigrated = false;
 
+  private static shouldSkip(): boolean {
+    return (
+      process.env.SKIP_DB_TESTS === '1' || process.env.SKIP_DB_TESTS === 'true'
+    );
+  }
+
   constructor() {
     super();
+    if (TestCaseDatabase.shouldSkip()) {
+      // Avoid initializing Prisma when database-dependent tests are skipped
+      this.prisma = {} as ReturnType<typeof getPrismaClient>;
+      return;
+    }
+
     this.prisma = getPrismaClient();
+  }
+
+  /**
+   * Skip suites when database is unavailable
+   */
+  protected suite(name: string, fn: () => void): void {
+    if (TestCaseDatabase.shouldSkip()) {
+      describe.skip(`${name} (database unavailable)`, fn);
+      return;
+    }
+
+    super.suite(name, fn);
   }
 
   /**
    * Run database migrations before tests
    */
   protected async setUpBeforeClass(): Promise<void> {
+    if (TestCaseDatabase.shouldSkip()) return;
+
     await super.setUpBeforeClass();
 
     if (!TestCaseDatabase.isMigrated) {
       try {
-        await execPromise('npx prisma migrate deploy --schema=./database/prisma/schema.prisma');
+        await execPromise(
+          'npx prisma migrate deploy --schema=./database/prisma/schema.prisma',
+        );
         TestCaseDatabase.isMigrated = true;
       } catch (error) {
         console.error('Migration failed:', error);
         console.log('Resetting test database...');
         try {
-          await execPromise('npx prisma migrate reset --force --schema=./database/prisma/schema.prisma');
+          await execPromise(
+            'npx prisma migrate reset --force --schema=./database/prisma/schema.prisma',
+          );
           TestCaseDatabase.isMigrated = true;
         } catch (resetError) {
           console.error('Database reset failed:', resetError);
@@ -46,6 +77,8 @@ export abstract class TestCaseDatabase extends TestCase {
    * Refresh database (truncate all tables) before each test
    */
   protected async setUp(): Promise<void> {
+    if (TestCaseDatabase.shouldSkip()) return;
+
     await super.setUp();
     await this.refreshDatabase();
   }
@@ -54,6 +87,8 @@ export abstract class TestCaseDatabase extends TestCase {
    * Disconnect from database after each test
    */
   protected async tearDown(): Promise<void> {
+    if (TestCaseDatabase.shouldSkip()) return;
+
     await this.prisma.$disconnect();
     await super.tearDown();
   }
@@ -62,6 +97,8 @@ export abstract class TestCaseDatabase extends TestCase {
    * Disconnect from database after all tests
    */
   protected async tearDownAfterClass(): Promise<void> {
+    if (TestCaseDatabase.shouldSkip()) return;
+
     await this.prisma.$disconnect();
     await super.tearDownAfterClass();
   }
@@ -70,6 +107,8 @@ export abstract class TestCaseDatabase extends TestCase {
    * Truncate all tables in the database
    */
   protected async refreshDatabase(): Promise<void> {
+    if (TestCaseDatabase.shouldSkip()) return;
+
     const tablenames = await this.prisma.$queryRaw<
       Array<{ tablename: string }>
     >`SELECT tablename FROM pg_tables WHERE schemaname='public'`;
@@ -82,7 +121,9 @@ export abstract class TestCaseDatabase extends TestCase {
 
     if (tables) {
       try {
-        await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE;`);
+        await this.prisma.$executeRawUnsafe(
+          `TRUNCATE TABLE ${tables} CASCADE;`,
+        );
       } catch (error) {
         console.error('Failed to truncate tables:', error);
         throw error;
@@ -104,6 +145,12 @@ export abstract class TestCaseDatabase extends TestCase {
   protected async transaction<T>(
     fn: (tx: ReturnType<typeof getPrismaClient>) => Promise<T>,
   ): Promise<T> {
+    if (TestCaseDatabase.shouldSkip()) {
+      throw new Error(
+        'Database tests are skipped because the database is unavailable.',
+      );
+    }
+
     return this.prisma.$transaction(async (tx) => {
       return fn(tx as ReturnType<typeof getPrismaClient>);
     });
