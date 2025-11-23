@@ -51,7 +51,7 @@ async function main() {
         },
       ],
       basePath,
-      apiBasePath: process.env.API_BASE_PATH || '',
+      apiBasePath: process.env.API_BASE_PATH || '/api',
       tagDescriptions,
     },
     basePath,
