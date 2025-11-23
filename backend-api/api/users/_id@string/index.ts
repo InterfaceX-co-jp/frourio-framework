@@ -1,5 +1,33 @@
 import type { DefineMethods } from 'aspida';
-import type { ProblemDetails } from 'commonTypesWithClient';
+import type { ProblemDetails } from '@fullstack/shared-types';
+
+/**
+ * Success response type for getting a user
+ */
+type UserGetSuccess = {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * Success response type for updating a user
+ */
+type UserUpdateSuccess = {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+  updatedAt: string;
+};
+
+/**
+ * Success response type for deleting a user
+ */
+type UserDeleteSuccess = { success: true };
 
 export type Methods = DefineMethods<{
   /**
@@ -9,16 +37,7 @@ export type Methods = DefineMethods<{
    * @tag Users
    */
   get: {
-    resBody:
-      | {
-          id: number;
-          name: string;
-          email: string;
-          age: number;
-          createdAt: string;
-          updatedAt: string;
-        }
-      | ProblemDetails;
+    resBody: UserGetSuccess | ProblemDetails;
   };
 
   /**
@@ -36,15 +55,7 @@ export type Methods = DefineMethods<{
       /** Updated age (must be 18 or older) */
       age?: number;
     };
-    resBody:
-      | {
-          id: number;
-          name: string;
-          email: string;
-          age: number;
-          updatedAt: string;
-        }
-      | ProblemDetails;
+    resBody: UserUpdateSuccess | ProblemDetails;
   };
 
   /**
@@ -55,6 +66,6 @@ export type Methods = DefineMethods<{
    * @deprecated Use POST /users/{id}/deactivate instead
    */
   delete: {
-    resBody: { success: true } | ProblemDetails;
+    resBody: UserDeleteSuccess | ProblemDetails;
   };
 }>;

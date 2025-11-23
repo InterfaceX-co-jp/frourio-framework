@@ -8,7 +8,7 @@
  */
 
 import { toast } from 'react-toastify'
-import { isApiSuccess, type ProblemDetails, type ApiResponse } from '../../../backend-api/commonTypesWithClient'
+import { isApiSuccess, type ProblemDetails, type ApiResponse } from '@fullstack/shared-types'
 
 /**
  * Options for handling API responses

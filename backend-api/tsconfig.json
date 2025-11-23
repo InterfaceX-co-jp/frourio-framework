@@ -27,5 +27,10 @@
     "scripts/build.prod.js",
     "scripts/build.dev.js"
   ],
-  "exclude": ["node_modules", "prisma/__generated__", "$server.ts"]
+  "exclude": [
+    "node_modules",
+    "prisma/__generated__",
+    "$server.ts",
+    "**/$server.ts"
+  ]
 }

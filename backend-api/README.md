@@ -251,11 +251,57 @@ export default defineController(() => ({
 
 ## Testing
 
-```bash
-npm run test
+The project includes a comprehensive testing framework at `@frouvel/kaname/testing`.
+
+### Quick Start
+
+```typescript
+import { TestCaseIntegration } from '$/@frouvel/kaname/testing';
+import { expect } from 'vitest';
+
+class MyTest extends TestCaseIntegration {
+  run() {
+    this.suite('My Test Suite', () => {
+      this.test('my test', async () => {
+        const response = await this.get('/api/health');
+        this.assertOk(response);
+      });
+    });
+  }
+}
+
+new MyTest().run();
 ```
 
-Tests are written using Vitest.
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npm test tests/integration/users.integration.test.ts
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
+```
+
+### Features
+
+- **Test Case Classes**: `TestCase`, `TestCaseDatabase`, `TestCaseIntegration`
+- **Factory Pattern**: Generate test data with `Factory` and `fake` helpers
+- **API Client**: Fluent HTTP request interface
+- **Automatic Setup**: Database migrations, seeding, and cleanup
+- **Rich Assertions**: Expressive assertion helpers
+
+### Documentation
+
+- [Testing Framework Documentation](@frouvel/kaname/testing/README.md)
+- [Migration Guide](@frouvel/kaname/testing/MIGRATION_GUIDE.md)
+- [Example Tests](tests/integration/)
 
 ## Environment Variables
 
@@ -313,6 +359,7 @@ For detailed documentation, see:
 ## Documentation
 
 - [Artisan Console](@frouvel/kaname/console/README.md)
+- [Testing Framework](@frouvel/kaname/testing/README.md)
 - [Swagger/OpenAPI](@frouvel/kaname/swagger/README.md)
 - [RFC9457 Error Handling](docs/RFC9457_ERROR_HANDLING.md)
 - [Response Builder](docs/RESPONSE_BUILDER.md)

@@ -1,5 +1,36 @@
 import type { DefineMethods } from 'aspida';
-import type { ProblemDetails } from 'commonTypesWithClient';
+import type { ProblemDetails } from '@fullstack/shared-types';
+
+/**
+ * Success response type for user list
+ */
+type UserListSuccess = {
+  data: Array<{
+    id: number;
+    name: string;
+    email: string;
+    createdAt: string;
+  }>;
+  meta: {
+    total: number;
+    perPage: number;
+    currentPage: number;
+    lastPage: number;
+    from: number | null;
+    to: number | null;
+  };
+};
+
+/**
+ * Success response type for user creation
+ */
+type UserCreateSuccess = {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+  createdAt: string;
+};
 
 /**
  * User Management API
@@ -23,22 +54,7 @@ export type Methods = DefineMethods<{
       /** Optional search query to filter users by name or email */
       search?: string;
     };
-    resBody:
-      | {
-          data: Array<{
-            id: number;
-            name: string;
-            email: string;
-            createdAt: string;
-          }>;
-          meta: {
-            currentPage: number;
-            lastPage: number;
-            total: number;
-            perPage: number;
-          };
-        }
-      | ProblemDetails;
+    resBody: UserListSuccess | ProblemDetails;
   };
 
   /**
@@ -56,14 +72,6 @@ export type Methods = DefineMethods<{
       /** User's age (must be 18 or older) */
       age: number;
     };
-    resBody:
-      | {
-          id: number;
-          name: string;
-          email: string;
-          age: number;
-          createdAt: string;
-        }
-      | ProblemDetails;
+    resBody: UserCreateSuccess | ProblemDetails;
   };
 }>;
