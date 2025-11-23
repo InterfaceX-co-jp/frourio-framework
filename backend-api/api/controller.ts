@@ -1,5 +1,6 @@
 import { defineController } from './$relay';
+import { ApiResponse } from '$/@frouvel/kaname/http/ApiResponse';
 
 export default defineController(() => ({
-  get: () => ({ status: 200, body: 'OK' }),
+  get: () => ApiResponse.success('OK'),
 }));

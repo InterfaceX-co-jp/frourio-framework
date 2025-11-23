@@ -1,6 +1,5 @@
+import { COOKIE_STORAGE_PREFIX } from '@/config/app'
 import Cookies from 'js-cookie'
-
-const COOKIE_STORAGE_PREFIX = 'dig_' as const
 
 type CookieStorageKey = `${typeof COOKIE_STORAGE_PREFIX}${string}`
 
