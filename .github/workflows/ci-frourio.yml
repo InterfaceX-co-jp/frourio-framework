@@ -41,23 +41,23 @@ jobs:
         id: root-npm-cache
         with:
           path: "node_modules"
-          key: client-npm-${{ hashFiles('package-lock.json') }}
-      - uses: actions/cache@v4
-        id: client-npm-cache
-        with:
-          path: "frontend-web/node_modules"
-          key: client-npm-${{ hashFiles('frontend-web/package-lock.json') }}
+          key: root-npm-v2-${{ hashFiles('package-lock.json') }}
       - uses: actions/cache@v4
         id: server-npm-cache
         with:
           path: "backend-api/node_modules"
-          key: client-npm-${{ hashFiles('backend-api/package-lock.json') }}
+          key: server-npm-v2-${{ hashFiles('backend-api/package-lock.json') }}
+      - uses: actions/cache@v4
+        id: client-npm-cache
+        with:
+          path: "frontend-web/node_modules"
+          key: client-npm-v2-${{ hashFiles('frontend-web/package-lock.json') }}
       - run: npm install
         if: steps.root-npm-cache.outputs.cache-hit != 'true'
-      - run: npm install --prefix frontend-web
-        if: steps.client-npm-cache.outputs.cache-hit != 'true'
       - run: npm install --prefix backend-api
         if: steps.server-npm-cache.outputs.cache-hit != 'true'
+      - run: npm install --prefix frontend-web
+        if: steps.client-npm-cache.outputs.cache-hit != 'true'
       - name: Execute frontend lint
         run: npm run lint --prefix frontend-web
       - name: Execute backend lint
