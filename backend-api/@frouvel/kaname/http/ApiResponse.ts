@@ -104,6 +104,7 @@ function errorToProblemDetails(error: unknown): ProblemDetails {
 const returnSuccess = <T>(val: T) => ({
   status: 200 as const,
   body: val,
+  headers: {},
 });
 
 /**
@@ -121,6 +122,7 @@ function returnProblemDetails(
   return {
     status,
     body: problemDetails,
+    headers: {},
   };
 }
 
@@ -179,6 +181,7 @@ function returnBadRequest(detail: string, extensions?: Record<string, any>) {
   return {
     status: 400 as const,
     body: problemDetails,
+    headers: {},
   } as const;
 }
 
@@ -197,6 +200,7 @@ function returnUnauthorized(detail: string, extensions?: Record<string, any>) {
   return {
     status: 401 as const,
     body: problemDetails,
+    headers: {},
   } as const;
 }
 
@@ -215,6 +219,7 @@ function returnForbidden(detail: string, extensions?: Record<string, any>) {
   return {
     status: 403 as const,
     body: problemDetails,
+    headers: {},
   } as const;
 }
 
@@ -233,6 +238,7 @@ function returnNotFound(detail: string, extensions?: Record<string, any>) {
   return {
     status: 404 as const,
     body: problemDetails,
+    headers: {},
   } as const;
 }
 
@@ -251,6 +257,7 @@ function returnConflict(detail: string, extensions?: Record<string, any>) {
   return {
     status: 409 as const,
     body: problemDetails,
+    headers: {},
   } as const;
 }
 
@@ -272,6 +279,7 @@ function returnInternalServerError(
   return {
     status: 500 as const,
     body: problemDetails,
+    headers: {},
   } as const;
 }
 
