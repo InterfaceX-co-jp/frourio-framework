@@ -2,7 +2,11 @@ import { NotFoundError } from '$/@frouvel/kaname/error/CommonErrors';
 import type { IUserRepository } from '../repository/User.repository.interface';
 
 export class FindUserByIdUseCase {
-  constructor(private readonly _userRepository: IUserRepository) {}
+  private readonly _userRepository: IUserRepository;
+
+  constructor(args: { userRepository: IUserRepository }) {
+    this._userRepository = args.userRepository;
+  }
 
   async execute(args: { id: number }) {
     const user = await this._userRepository.findById({ id: args.id });

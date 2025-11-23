@@ -3,7 +3,7 @@ import type { IUserRepository } from '../repository/User.repository.interface';
 export class UpdateUserUseCase {
   private readonly _userRepository: IUserRepository;
 
-  private constructor(args: { userRepository: IUserRepository }) {
+  constructor(args: { userRepository: IUserRepository }) {
     this._userRepository = args.userRepository;
   }
 

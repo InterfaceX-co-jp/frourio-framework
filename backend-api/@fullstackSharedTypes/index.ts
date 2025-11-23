@@ -1,2 +1,2 @@
 export * from './apiResponse.types';
-export type {};
+export * from './ProblemDetails.types';
