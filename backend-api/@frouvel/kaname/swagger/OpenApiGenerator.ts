@@ -351,7 +351,6 @@ export class OpenApiGenerator {
   /**
    * Parse JSDoc comments from file content
    */
-  // eslint-disable-next-line complexity
   private _parseJsDocFromFile(content: string): Map<string, JsDocInfo> {
     const jsdocMap = new Map<string, JsDocInfo>();
 

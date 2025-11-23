@@ -1,6 +1,6 @@
 # Database Module
 
-Database abstraction layer supporting both Prisma and Drizzle ORM with **zero performance overhead** through direct pass-through access.
+Database abstraction layer supporting Prisma, Drizzle ORM, and Redis with **zero performance overhead** through direct pass-through access.
 
 ## Philosophy
 
@@ -71,6 +71,78 @@ await DB.transaction(async (tx) => {
 });
 ```
 
+### Using Redis
+
+```typescript
+import { DB } from '$/@frouvel/kaname/database';
+
+// Direct Redis access - zero overhead!
+const redis = await DB.redis();
+
+// Use Redis full API
+await redis.set('user:1', JSON.stringify({ name: 'John', age: 30 }));
+const user = await redis.get('user:1');
+
+// Set with expiration
+await redis.set('session:abc', 'token', { EX: 3600 }); // Expires in 1 hour
+
+// Hash operations
+await redis.hSet('user:1:profile', {
+  name: 'John Doe',
+  email: 'john@example.com',
+  age: '30',
+});
+const profile = await redis.hGetAll('user:1:profile');
+
+// List operations
+await redis.rPush('user:1:notifications', ['New message', 'New follower']);
+const notifications = await redis.lRange('user:1:notifications', 0, -1);
+
+// Transactions (MULTI/EXEC)
+await DB.transaction(async (multi) => {
+  multi.set('counter:1', '10');
+  multi.incr('counter:1');
+  multi.get('counter:1');
+  return await multi.exec();
+});
+```
+
+### Using Cache Facade (Laravel-style) 🆕
+
+For Laravel developers or those preferring a simpler caching API:
+
+```typescript
+import { Cache } from '$/@frouvel/kaname/database';
+
+// Basic operations
+await Cache.put('user:1', userData, 3600); // Store with TTL (seconds)
+const user = await Cache.get('user:1'); // Retrieve
+await Cache.forget('user:1'); // Delete
+
+// Remember pattern (get or compute and cache)
+const user = await Cache.remember('user:1', 3600, async () => {
+  return await db.user.findUnique({ where: { id: 1 } });
+});
+
+// Atomic operations
+await Cache.increment('page_views');
+await Cache.decrement('stock_count', 5);
+
+// Bulk operations
+await Cache.putMany({
+  'user:1': user1,
+  'user:2': user2,
+}, 3600);
+
+const values = await Cache.many(['user:1', 'user:2']);
+
+// Advanced operations
+await Cache.forever('settings', config); // No expiration
+const token = await Cache.pull('temp_token'); // Get and delete
+```
+
+**See [Cache Usage Guide](./CACHE_USAGE.md) for complete API reference.**
+
 ## Configuration
 
 ### config/database.ts
@@ -104,6 +176,17 @@ export default {
         user: env('ANALYTICS_DB_USER'),
         password: env('ANALYTICS_DB_PASSWORD'),
         database: env('ANALYTICS_DB_DATABASE'),
+      },
+    },
+
+    // Redis connection (optional)
+    cache: {
+      driver: 'redis',
+      connection: {
+        host: env('REDIS_HOST', 'localhost'),
+        port: env('REDIS_PORT', 6379),
+        password: env('REDIS_PASSWORD'),
+        database: env('REDIS_DB', 0),
       },
     },
 
@@ -161,6 +244,36 @@ const analytics = DB.drizzle('analytics'); // Specific connection
 const users = await db.select().from(usersTable);
 ```
 
+### DB.redis()
+
+Get direct access to Redis client (zero overhead).
+
+```typescript
+const redis = await DB.redis(); // Default connection
+const cache = await DB.redis('cache'); // Specific connection
+
+// Use Redis full API
+await redis.set('key', 'value');
+await redis.get('key');
+await redis.del('key');
+
+// Hash operations
+await redis.hSet('hash', 'field', 'value');
+await redis.hGet('hash', 'field');
+
+// List operations
+await redis.lPush('list', 'item');
+await redis.lRange('list', 0, -1);
+
+// Set operations
+await redis.sAdd('set', 'member');
+await redis.sMembers('set');
+
+// Sorted set operations
+await redis.zAdd('zset', { score: 1, value: 'member' });
+await redis.zRange('zset', 0, -1);
+```
+
 ### DB.transaction()
 
 Execute operations within a transaction.
@@ -176,6 +289,14 @@ await DB.transaction(async (prisma) => {
 await DB.transaction(async (tx) => {
   await tx.insert(users).values({ name: 'John' });
   await tx.insert(profiles).values({ userId: 1 });
+});
+
+// Redis transaction (MULTI/EXEC)
+await DB.transaction(async (multi) => {
+  multi.set('key1', 'value1');
+  multi.set('key2', 'value2');
+  multi.get('key1');
+  return await multi.exec();
 });
 
 // Specific connection
@@ -282,6 +403,45 @@ export class AnalyticsService {
 }
 ```
 
+### Pattern 4: Caching with Redis
+
+```typescript
+import { DB } from '$/@frouvel/kaname/database';
+
+export class UserService {
+  private prisma = DB.prisma('primary');
+  private redis = await DB.redis('cache');
+
+  async getUserById(id: string) {
+    // Try cache first
+    const cached = await this.redis.get(`user:${id}`);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // Fetch from database
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (user) {
+      // Cache for 5 minutes
+      await this.redis.set(
+        `user:${id}`,
+        JSON.stringify(user),
+        { EX: 300 }
+      );
+    }
+
+    return user;
+  }
+
+  async invalidateUserCache(id: string) {
+    await this.redis.del(`user:${id}`);
+  }
+}
+```
+
 ## Testing Support
 
 The `TestCaseDatabase` works seamlessly with the DB facade:
@@ -357,15 +517,170 @@ const users2 = await DB.prisma().user.findMany();
 // Same speed - DB.prisma() just returns the client directly!
 ```
 
+## Redis Operations Guide
+
+### String Operations
+
+```typescript
+const redis = await DB.redis();
+
+// Set and get
+await redis.set('key', 'value');
+const value = await redis.get('key');
+
+// Set with expiration (EX in seconds)
+await redis.set('session:123', 'token', { EX: 3600 });
+
+// Multiple keys
+await redis.mSet({ key1: 'value1', key2: 'value2' });
+const values = await redis.mGet(['key1', 'key2']);
+
+// Increment/Decrement
+await redis.incr('counter');
+await redis.incrBy('counter', 5);
+await redis.decr('counter');
+```
+
+### Hash Operations
+
+```typescript
+// Set hash fields
+await redis.hSet('user:1', {
+  name: 'John',
+  email: 'john@example.com',
+  age: '30',
+});
+
+// Get single field
+const name = await redis.hGet('user:1', 'name');
+
+// Get all fields
+const user = await redis.hGetAll('user:1');
+
+// Check field exists
+const exists = await redis.hExists('user:1', 'name');
+
+// Delete field
+await redis.hDel('user:1', 'age');
+```
+
+### List Operations
+
+```typescript
+// Push to list
+await redis.rPush('notifications', 'New message');
+await redis.lPush('notifications', 'Urgent!'); // Push to front
+
+// Get range
+const items = await redis.lRange('notifications', 0, -1); // All items
+const first = await redis.lRange('notifications', 0, 0); // First item
+
+// Pop from list
+const item = await redis.rPop('notifications');
+const firstItem = await redis.lPop('notifications');
+
+// List length
+const length = await redis.lLen('notifications');
+```
+
+### Set Operations
+
+```typescript
+// Add members
+await redis.sAdd('tags', ['nodejs', 'typescript', 'redis']);
+
+// Check membership
+const isMember = await redis.sIsMember('tags', 'nodejs');
+
+// Get all members
+const members = await redis.sMembers('tags');
+
+// Remove member
+await redis.sRem('tags', 'redis');
+
+// Set operations
+await redis.sUnion(['set1', 'set2']);
+await redis.sInter(['set1', 'set2']);
+await redis.sDiff(['set1', 'set2']);
+```
+
+### Sorted Set Operations
+
+```typescript
+// Add members with scores
+await redis.zAdd('leaderboard', [
+  { score: 100, value: 'player1' },
+  { score: 95, value: 'player2' },
+  { score: 90, value: 'player3' },
+]);
+
+// Get range by rank
+const top3 = await redis.zRange('leaderboard', 0, 2, { REV: true });
+
+// Get score
+const score = await redis.zScore('leaderboard', 'player1');
+
+// Increment score
+await redis.zIncrBy('leaderboard', 10, 'player2');
+
+// Get rank
+const rank = await redis.zRevRank('leaderboard', 'player1');
+```
+
+### Key Management
+
+```typescript
+// Check if key exists
+const exists = await redis.exists('key');
+
+// Set expiration
+await redis.expire('key', 3600); // Seconds
+await redis.expireAt('key', Math.floor(Date.now() / 1000) + 3600);
+
+// Get TTL
+const ttl = await redis.ttl('key'); // -1 if no expiration, -2 if not exists
+
+// Delete keys
+await redis.del('key');
+await redis.del(['key1', 'key2', 'key3']);
+
+// Pattern matching (use sparingly in production)
+const keys = await redis.keys('user:*');
+
+// Rename key
+await redis.rename('oldKey', 'newKey');
+```
+
+### Pub/Sub
+
+```typescript
+const redis = await DB.redis();
+
+// Subscribe to channel
+const subscriber = redis.duplicate();
+await subscriber.connect();
+
+await subscriber.subscribe('notifications', (message) => {
+  console.log('Received:', message);
+});
+
+// Publish message
+await redis.publish('notifications', 'Hello, World!');
+
+// Unsubscribe
+await subscriber.unsubscribe('notifications');
+```
+
 ## Why Not a Query Builder?
 
 Query builders add abstraction and learning curves. Instead:
 
 1. **Prisma** already has excellent TypeScript support and query API
 2. **Drizzle** is designed to be close to SQL with great DX
-3. **Zero Overhead**: Direct access means no performance penalty
-4. **Full Features**: Access to all ORM-specific features
-5. **Type Safety**: Maintain full TypeScript types from your ORM
+3. **Redis** is designed with a simple command API
+4. **Zero Overhead**: Direct access means no performance penalty
+5. **Full Features**: Access to all ORM/driver-specific features
+6. **Type Safety**: Maintain full TypeScript types from your ORM/driver
 
 ## Advanced Usage
 
@@ -446,8 +761,32 @@ npm run generate:prisma
 
 Check your `config/database.ts` has all connections defined and the connection name matches.
 
+### Redis Connection Issues
+
+Make sure Redis is running:
+
+```bash
+# Using Docker Compose
+docker-compose up redis
+
+# Check if Redis is accessible
+redis-cli ping
+```
+
+Update your `.env` file:
+
+```env
+REDIS_URL=redis://localhost:6379
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+```
+
 ## See Also
 
 - [Architecture Document](./ARCHITECTURE.md) - Detailed architectural design
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Drizzle Documentation](https://orm.drizzle.team/docs/overview)
+- [Redis Documentation](https://redis.io/docs/)
+- [node-redis Documentation](https://github.com/redis/node-redis)

@@ -35,13 +35,26 @@ export class DatabaseServiceProvider implements ServiceProvider {
     // Initialize DB facade with config
     DB.init(dbConfig);
 
-    // Register Prisma client
-    const prisma = getPrismaClient();
-    DB.register('default', prisma, 'prisma');
+    // Register Prisma client when available
+    try {
+      if (typeof getPrismaClient === 'function') {
+        const prisma = getPrismaClient();
+        DB.register('default', prisma, 'prisma');
 
-    // Register in container
-    app.singleton('prisma', () => prisma);
-    app.singleton('db', () => DB);
+        // Register in container
+        app.singleton('prisma', () => prisma);
+        app.singleton('db', () => DB);
+      } else {
+        console.warn(
+          '[DatabaseServiceProvider] getPrismaClient is not available. Skipping Prisma registration.',
+        );
+      }
+    } catch (error) {
+      console.warn(
+        '[DatabaseServiceProvider] Failed to initialize Prisma client. Skipping Prisma registration.',
+        error,
+      );
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

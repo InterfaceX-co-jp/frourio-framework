@@ -5,6 +5,7 @@ import type {
 import type { DatabaseDriver } from './contracts/DatabaseDriver.interface';
 import { PrismaDriver } from './drivers/PrismaDriver';
 import { DrizzleDriver } from './drivers/DrizzleDriver';
+import { RedisDriver } from './drivers/RedisDriver';
 import {
   DatabaseClientCreationError,
   DatabaseConnectionNotConfiguredError,
@@ -47,6 +48,7 @@ export class DatabaseManager implements IDatabaseManager {
     // Register built-in drivers
     this.registerDriver('prisma', new PrismaDriver());
     this.registerDriver('drizzle', new DrizzleDriver());
+    this.registerDriver('redis', new RedisDriver());
 
     this.defaultConnection = config.default;
 
@@ -95,6 +97,20 @@ export class DatabaseManager implements IDatabaseManager {
     const config = this.connections.get(name);
 
     if (!config || config.driver !== 'drizzle') {
+      return null;
+    }
+
+    return this.getOrCreateClient<T>(name);
+  }
+
+  /**
+   * Get Redis client for direct access (zero overhead)
+   */
+  redis<T = any>(connection?: string): T | null {
+    const name = connection || this.defaultConnection;
+    const config = this.connections.get(name);
+
+    if (!config || config.driver !== 'redis') {
       return null;
     }
 
@@ -178,11 +194,7 @@ export class DatabaseManager implements IDatabaseManager {
    * Register a pre-configured client
    * Useful for testing or when you already have a client instance
    */
-  registerClient(
-    name: string,
-    client: any,
-    driver: string,
-  ): void {
+  registerClient(name: string, client: any, driver: string): void {
     if (!this.drivers.has(driver)) {
       throw new UnsupportedDatabaseDriverError(driver);
     }
