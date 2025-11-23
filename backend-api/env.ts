@@ -60,6 +60,15 @@ export const envSchema = z.object({
   SWAGGER_TITLE: z.string().optional(),
   SWAGGER_VERSION: z.string().optional(),
   SWAGGER_DESCRIPTION: z.string().optional(),
+
+  // Sentry Monitoring
+  SENTRY_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true')
+    .pipe(z.boolean())
+    .default('false'),
+  SENTRY_DSN: z.string().optional(),
 });
 
 // In test environment, don't exit on validation errors to allow tests to run

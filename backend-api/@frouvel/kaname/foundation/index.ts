@@ -24,6 +24,7 @@ export {
 export {
   ConsoleServiceProvider,
   DatabaseServiceProvider,
+  SentryServiceProvider,
   SwaggerServiceProvider,
 } from './providers';
 

@@ -13,6 +13,7 @@ import {
   ConsoleKernel,
   DatabaseServiceProvider,
   ConsoleServiceProvider,
+  SentryServiceProvider,
   SwaggerServiceProvider,
 } from '$/@frouvel/kaname/foundation';
 import { AppServiceProvider } from '$/app/providers/AppServiceProvider';
@@ -25,7 +26,6 @@ import { resolve } from 'path';
 const basePath = __dirname.endsWith('bootstrap')
   ? resolve(__dirname, '..')
   : __dirname;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -69,8 +69,9 @@ const providers = [
   // Framework providers
   DatabaseServiceProvider,
   ConsoleServiceProvider,
+  SentryServiceProvider,
   SwaggerServiceProvider,
-  
+
   // Application providers
   AppServiceProvider,
 ];

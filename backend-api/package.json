@@ -55,6 +55,8 @@
     "@fastify/swagger-ui": "^5.2.3",
     "@prisma/client": "^6.19.0",
     "@sendgrid/mail": "^8.1.6",
+    "@sentry/node": "^10.26.0",
+    "@sentry/profiling-node": "^10.26.0",
     "aspida": "^1.14.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
@@ -70,11 +72,11 @@
     "zod": "^3.25.61"
   },
   "devDependencies": {
+    "@fullstack/shared-types": "file:./@fullstackSharedTypes",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^24.10.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
-    "@fullstack/shared-types": "file:./@fullstackSharedTypes",
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.7",
     "esbuild": "^0.25.0",
