@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-  title: Frourio Framework API
+  title: API
   version: 1.0.0
-  description: API Documentation for Frourio Framework
+  description: API Documentation
 servers:
   - url: http://localhost:31577
     description: Development
@@ -14,7 +14,7 @@ tags:
   - name: Users
     description: Users related operations
 paths:
-  /api/example/error/rfc9457:
+  /example/error/rfc9457:
     get:
       summary: endpoint demonstrating RFC9457 error responses
       description: a simple success message. Useful for testing error handling patterns.
@@ -122,7 +122,7 @@ paths:
             schema:
               type: object
     delete:
-      summary: DELETE /api/example/error/rfc9457
+      summary: DELETE /example/error/rfc9457
       responses:
         "200":
           description: Successful response
@@ -140,7 +140,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/health:
+  /health:
     get:
       summary: API health status
       description: a simple health check response to verify the API is running
@@ -163,7 +163,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/users/{id}:
+  /users/{id}:
     get:
       summary: a single user
       description: detailed information about a specific user by their unique identifier
@@ -255,7 +255,7 @@ paths:
           required: true
           schema:
             type: string
-  /api/users:
+  /users:
     get:
       summary: paginated list of users
       description: a paginated list of all users in the system with optional search

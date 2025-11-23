@@ -18,6 +18,7 @@ import { GenerateOpenApiCommand } from '$/app/console/GenerateOpenApiCommand';
 // Import repositories
 import type { IUserRepository } from '$/domain/user/repository/User.repository.interface';
 import { UserRepository } from '$/domain/user/repository/prisma/User.repository';
+import { CreateUserUseCase } from '$/domain/user/usecase/CreateUser.usecase';
 import { DeleteUserByIdUseCase } from '$/domain/user/usecase/DeleteUserById.usecase';
 import { FindUserByIdUseCase } from '$/domain/user/usecase/FindUserById.usecase';
 
@@ -34,6 +35,10 @@ export class AppServiceProvider implements ServiceProvider {
     app.bind<PaginateUserUsecase>('PaginateUserUsecase', () => {
       const userRepository = app.make<IUserRepository>('IUserRepository');
       return new PaginateUserUsecase({ userRepository });
+    });
+    app.bind<CreateUserUseCase>('CreateUserUseCase', () => {
+      const userRepository = app.make<IUserRepository>('IUserRepository');
+      return new CreateUserUseCase({ userRepository });
     });
     app.bind<FindUserByIdUseCase>('FindUserByIdUseCase', () => {
       const userRepository = app.make<IUserRepository>('IUserRepository');
