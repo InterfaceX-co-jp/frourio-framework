@@ -15,10 +15,10 @@ export abstract class TestCaseIntegration extends TestCaseDatabase {
 
   constructor() {
     super();
-    // Use a different port for each test run to avoid conflicts
-    const testingConfig = config('testing.server');
-    TestCaseIntegration.testPort = testingConfig.port;
-    this.baseURL = `http://localhost:${TestCaseIntegration.testPort}`;
+    // Defer config access until the application has been bootstrapped
+    // (LoadConfiguration bootstrapper binds the config service).
+    TestCaseIntegration.testPort = 0;
+    this.baseURL = '';
   }
 
   /**
@@ -29,9 +29,15 @@ export abstract class TestCaseIntegration extends TestCaseDatabase {
 
     const kernel = app.make<HttpKernel>('HttpKernel');
     this.server = await kernel.handle();
+
+    // Configuration is available after kernel bootstrap
+    const testingConfig = config('testing.server');
+    TestCaseIntegration.testPort = testingConfig.port;
+    this.baseURL = `http://${testingConfig.host}:${TestCaseIntegration.testPort}`;
+
     await this.server.listen({
       port: TestCaseIntegration.testPort,
-      host: '0.0.0.0',
+      host: testingConfig.host,
     });
   }
 

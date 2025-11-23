@@ -12,7 +12,10 @@ export default defineConfig({
   test: {
     globals: true,
     env: {
-      DATABASE_URL: process.env.TEST_DATABASE_URL ?? '',
+      DATABASE_URL:
+        process.env.TEST_DATABASE_URL ??
+        process.env.DATABASE_URL ??
+        '',
     },
     setupFiles: ['@frouvel/kaname/testing/setup.ts'],
     includeSource: ['**/*.ts'],
