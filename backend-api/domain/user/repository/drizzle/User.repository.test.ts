@@ -24,12 +24,16 @@ class UserRepositoryDrizzleTest extends TestCaseDatabase {
     this.repository = new UserRepositoryDrizzle();
 
     // Clean up users table before each test
-    await this.db.delete(users);
+    if (this.db) {
+      await this.db.delete(users);
+    }
   }
 
   protected async tearDownAfterClass(): Promise<void> {
-    await this.db.delete(users);
-    await DB.disconnectAll();
+    if (this.db) {
+      await this.db.delete(users);
+      await DB.disconnectAll();
+    }
     await super.tearDownAfterClass();
   }
 
