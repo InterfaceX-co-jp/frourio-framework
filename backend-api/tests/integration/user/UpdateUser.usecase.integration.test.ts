@@ -3,6 +3,8 @@ import { TestCaseDatabase } from '$/@frouvel/kaname/testing';
 import { fake } from '$/@frouvel/kaname/testing';
 import { UpdateUserUseCase } from '$/domain/user/usecase/UpdateUser.usecase';
 import { UserRepositoryDrizzle } from '$/domain/user/repository/drizzle/User.repository';
+import { getDrizzleClient } from '$/@frouvel/kaname/database';
+import { DB } from '$/@frouvel/kaname/database';
 
 /**
  * UpdateUser UseCase Integration Test
@@ -10,6 +12,14 @@ import { UserRepositoryDrizzle } from '$/domain/user/repository/drizzle/User.rep
  * Tests the UpdateUserUseCase with real database operations
  */
 class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
+  protected async setUpBeforeClass(): Promise<void> {
+    await super.setUpBeforeClass();
+    
+    // Initialize Drizzle client and register with DB facade
+    const db = getDrizzleClient();
+    DB.register('default', db, 'drizzle');
+  }
+
   run() {
     this.suite('UpdateUserUseCase Integration Tests', () => {
       this.test('can update user name', async () => {
