@@ -1,23 +1,5 @@
-function range(start, end, increment = 1) {
-  const count = Math.floor((end - start + increment) / increment)
-  return Array(count)
-    .fill(0)
-    .map((_, idx) => start + idx * increment)
-}
-
-const minFontSize = 2
-const maxFontSize = 140
-
-const minFlexSize = 1
-const maxFlexSize = 12
-
-const minSpacingPixel = 0
-const maxSpacingPixel = 1200
-const spacingPixelIncrement = 2
-
-const vhs = ['10vh', '20vh', '30vh', '40vh', '50vh', '60vh', '70vh', '80vh', '90vh', '100vh']
-
 const config = {
+  darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -29,7 +11,48 @@ const config = {
   ],
   theme: {
     extend: {
-      colors: {},
+      colors: {
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+        },
+      },
       fontFamily: {},
       width: {},
       container: {
@@ -50,60 +73,25 @@ const config = {
       },
       keyframes: {
         spinning: {
-          '0%': { transform: 'rotateY(0deg)' },
-          '100%': { transform: 'rotateY(360deg)' },
+          '0%': {
+            transform: 'rotateY(0deg)',
+          },
+          '100%': {
+            transform: 'rotateY(360deg)',
+          },
         },
       },
       animation: {
         spinning: 'spinning 3s linear infinite',
       },
-      flex: {
-        ...range(minFlexSize, maxFlexSize).reduce((merged, f) => ({ ...merged, [f]: `${f} ${f} 0%` }), {}),
-        none: 'none',
-      },
-      fontSize: {
-        ...range(minFontSize, maxFontSize).reduce((merged, f) => ({ ...merged, [f]: `${f}px` }), {}),
-      },
-      spacing: {
-        ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
-          (merged, f) => ({ ...merged, [f]: `${f}px` }),
-          {},
-        ),
-      },
-      lineHeight: {
-        ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
-          (merged, f) => ({ ...merged, [f]: `${f}px` }),
-          {},
-        ),
-      },
-      maxWidth: {
-        ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
-          (merged, f) => ({ ...merged, [f]: `${f}px` }),
-          {},
-        ),
-      },
-      minWidth: {
-        ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
-          (merged, f) => ({ ...merged, [f]: `${f}px` }),
-          {},
-        ),
-      },
-      maxHeight: {
-        ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
-          (merged, f) => ({ ...merged, [f]: `${f}px` }),
-          {},
-        ),
-        ...vhs.reduce((merged, vh) => ({ ...merged, [vh]: vh }), {}),
-      },
-      minHeight: {
-        ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
-          (merged, f) => ({ ...merged, [f]: `${f}px` }),
-          {},
-        ),
-        ...vhs.reduce((merged, vh) => ({ ...merged, [vh]: vh }), {}),
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
     },
   },
+  plugins: [require('tailwindcss-animate')],
 }
 
 export default config
