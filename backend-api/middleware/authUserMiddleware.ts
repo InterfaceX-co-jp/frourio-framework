@@ -9,8 +9,12 @@ interface JwtPayload {
   exp: number;
 }
 
+type JwtVerifiedRequest = FastifyRequest & {
+  jwtVerify: () => Promise<JwtPayload>;
+};
+
 export const authUserMiddleware = async (
-  req: FastifyRequest,
+  req: JwtVerifiedRequest,
   reply: FastifyReply,
 ) => {
   try {
