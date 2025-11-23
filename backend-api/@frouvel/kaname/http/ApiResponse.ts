@@ -100,7 +100,7 @@ function errorToProblemDetails(error: unknown): ProblemDetails {
  * @internal
  */
 const returnSuccess = <T>(val: T) => ({
-  status: 200 as const,
+  status: 200,
   body: val,
 });
 
@@ -175,9 +175,9 @@ function returnBadRequest(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 400 as const,
+    status: 400,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -193,9 +193,9 @@ function returnUnauthorized(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 401 as const,
+    status: 401,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -211,9 +211,9 @@ function returnForbidden(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 403 as const,
+    status: 403,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -229,9 +229,9 @@ function returnNotFound(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 404 as const,
+    status: 404,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -247,9 +247,9 @@ function returnConflict(detail: string, extensions?: Record<string, any>) {
   });
 
   return {
-    status: 409 as const,
+    status: 409,
     body: problemDetails,
-  } as const;
+  };
 }
 
 /**
@@ -268,9 +268,9 @@ function returnInternalServerError(
   });
 
   return {
-    status: 500 as const,
+    status: 500,
     body: problemDetails,
-  } as const;
+  };
 }
 
 // ============================================================================
