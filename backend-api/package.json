@@ -9,9 +9,8 @@
   "description": "backend API",
   "scripts": {
     "predev": "npm run generate && npm run migrate:deploy",
-    "dev": "concurrently --names=\"📦:build,🏃:run,🏰:frourio\" \"npm run dev:build\" \"npm run dev:run\" \"npm run dev:frourio\" -c cyan",
-    "dev:build": "tsx --watch ./scripts/build.dev.js",
-    "dev:run": "node --watch index.js",
+    "dev": "concurrently --names=\"🏃:server,🏰:frourio\" \"npm run dev:run\" \"npm run dev:frourio\" -c cyan",
+    "dev:run": "tsx --watch ./entrypoints/index.ts",
     "dev:frourio": "frourio --watch",
     "prebuild": "npm run generate && npm run migrate:deploy",
     "build": "tsx ./scripts/build.prod.js",
