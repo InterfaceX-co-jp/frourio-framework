@@ -27,5 +27,9 @@
     "scripts/build.prod.js",
     "scripts/build.dev.js"
   ],
-  "exclude": ["node_modules", "$server.ts"]
+  "exclude": [
+    "node_modules",
+    "$server.ts",
+    "@frouvel/kaname/scripts/**/*.ts"
+  ]
 }
