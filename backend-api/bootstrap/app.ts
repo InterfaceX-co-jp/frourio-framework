@@ -13,7 +13,7 @@ import {
   ConsoleKernel,
   DatabaseServiceProvider,
   ConsoleServiceProvider,
-  SentryServiceProvider,
+  // SentryServiceProvider,
   SwaggerServiceProvider,
 } from '$/@frouvel/kaname/foundation';
 import { AppServiceProvider } from '$/app/providers/AppServiceProvider';
@@ -69,7 +69,7 @@ const providers = [
   // Framework providers
   DatabaseServiceProvider,
   ConsoleServiceProvider,
-  SentryServiceProvider,
+  // SentryServiceProvider,
   SwaggerServiceProvider,
 
   // Application providers
