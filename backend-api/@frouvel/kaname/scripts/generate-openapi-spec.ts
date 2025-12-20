@@ -6,13 +6,18 @@
  * This can be used during build/CI or for documentation generation.
  */
 
-import { OpenApiGenerator } from '../swagger/OpenApiGenerator';
-import { OpenApiSpecGenerator } from '../generator/OpenApiSpecGenerator';
-import { join } from 'path';
+import { OpenApiGenerator } from '../swagger/OpenApiGenerator.js';
+import { OpenApiSpecGenerator } from '../generator/OpenApiSpecGenerator.js';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { config } from 'dotenv';
 
 // Load environment variables
 config();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Get project root
 const projectRoot = join(__dirname, '../../..');

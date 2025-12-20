@@ -163,9 +163,29 @@ export class HttpKernel extends Kernel {
     await app.register(cookie);
 
     // JWT authentication
-    await app.register(jwt, {
-      secret: config<string>('jwt.secret'),
-    });
+    try {
+      const jwtSecret = config<string>('jwt.secret');
+      if (!jwtSecret || jwtSecret.trim() === '') {
+        throw new Error('JWT secret is empty or undefined in config');
+      }
+      await app.register(jwt, {
+        secret: jwtSecret,
+      });
+    } catch (error) {
+      console.error('[HttpKernel] Failed to load JWT config:', error);
+      console.error(
+        '[HttpKernel] Using environment variable directly as fallback',
+      );
+      const envSecret = process.env.API_JWT_SECRET;
+      if (!envSecret || envSecret.trim() === '') {
+        throw new Error(
+          'API_JWT_SECRET environment variable is required but not set',
+        );
+      }
+      await app.register(jwt, {
+        secret: envSecret,
+      });
+    }
 
     // Swagger/OpenAPI documentation
     await this.registerSwagger(app);

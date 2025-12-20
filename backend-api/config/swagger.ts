@@ -5,8 +5,11 @@
  */
 
 import { z } from 'zod';
-import { defineConfig, type ConfigType } from '$/@frouvel/kaname/config';
-import { env } from '../env';
+import {
+  defineConfig,
+  type ConfigType,
+} from '../@frouvel/kaname/config/index.js';
+import { env } from '../env.js';
 
 /**
  * Tag descriptions for API grouping
@@ -54,7 +57,8 @@ const swaggerConfig = defineConfig({
       servers: [
         {
           url: env.APP_URL,
-          description: env.NODE_ENV === 'production' ? 'Production' : 'Development',
+          description:
+            env.NODE_ENV === 'production' ? 'Production' : 'Development',
         },
       ],
       tagDescriptions,

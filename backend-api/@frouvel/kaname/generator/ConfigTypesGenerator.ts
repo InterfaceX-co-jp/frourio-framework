@@ -21,7 +21,7 @@ export class ConfigTypesGenerator extends FileGenerator {
 
     const files = readdirSync(this.configPath);
     
-    // Filter for .ts files (excluding .d.ts, test files, and $types.ts)
+    // Filter for .ts files (excluding .d.ts, test files, $types.ts, and index.ts)
     const configFiles = files
       .filter((file) => {
         const ext = extname(file);
@@ -33,6 +33,7 @@ export class ConfigTypesGenerator extends FileGenerator {
           !file.endsWith('.spec.ts') &&
           baseName !== 'README' &&
           baseName !== 'types' &&
+          baseName !== 'index' && // Exclude index.ts (re-export file)
           !baseName.startsWith('$') // Exclude auto-generated files
         );
       })

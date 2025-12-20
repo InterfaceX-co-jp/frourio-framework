@@ -29,8 +29,7 @@
   ],
   "exclude": [
     "node_modules",
-    "prisma/__generated__",
     "$server.ts",
-    "**/$server.ts"
+    "@frouvel/kaname/scripts/**/*.ts"
   ]
 }
