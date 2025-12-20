@@ -6,8 +6,13 @@
  * This is used during build/CI to generate types before type checking.
  */
 
-import { ConfigTypesGenerator } from '../generator/ConfigTypesGenerator';
-import { join } from 'path';
+import { ConfigTypesGenerator } from '../generator/ConfigTypesGenerator.js';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Get config path relative to project root
 const projectRoot = join(__dirname, '../../..');
