@@ -5,18 +5,23 @@ This directory contains all application configuration files, following Laravel's
 ## Available Configuration Files
 
 ### `app.ts`
+
 Core application settings including name, environment, debug mode, URL, timezone, and locale.
 
 ### `admin.ts`
+
 Admin user configuration including default credentials and session settings.
 
 ### `cors.ts`
+
 Cross-Origin Resource Sharing (CORS) configuration with allowed origins, methods, and headers.
 
 ### `database.ts`
+
 Database connection configuration including connection pool settings and migration paths.
 
 ### `jwt.ts`
+
 JSON Web Token (JWT) authentication configuration including secrets, expiration times, and scopes.
 
 ## Usage
@@ -66,7 +71,7 @@ Configuration files can reference environment variables using `process.env` or t
 export default {
   // Using process.env with fallback
   name: process.env.APP_NAME || 'Default Name',
-  
+
   // Using validated env object
   secret: env.API_JWT_SECRET,
 };
@@ -164,14 +169,15 @@ export interface Config {
 import { config, configObject } from '$/@frouvel/kaname/config';
 
 // Property access (recommended - type-safe)
-const driver = configObject.mail.driver;  // Type: 'smtp' | 'sendgrid' | 'mailgun'
-const port = configObject.mail.port;      // Type: number
+const driver = configObject.mail.driver; // Type: 'smtp' | 'sendgrid' | 'mailgun'
+const port = configObject.mail.port; // Type: number
 
 // Function access (when you need defaults)
 const driver = config('mail.driver');
 ```
 
 **Benefits:**
+
 - ✅ **Zero manual type maintenance** - types auto-inferred from Zod schemas
 - ✅ **Runtime validation** - config values validated at startup
 - ✅ **Type safety** - full TypeScript support with IntelliSense
@@ -213,3 +219,4 @@ import type { MailConfig } from '$/config/mail';
 
 const mailConfig = config<MailConfig>('mail');
 // TypeScript knows the exact shape of mailConfig
+```
