@@ -1,12 +1,15 @@
 /**
  * JWT Configuration
- * 
+ *
  * Configuration for JSON Web Token authentication.
  */
 
 import { z } from 'zod';
-import { defineConfig, type ConfigType } from '$/@frouvel/kaname/config';
-import { env } from '../env';
+import {
+  defineConfig,
+  type ConfigType,
+} from '../@frouvel/kaname/config/index.js';
+import { env } from '../env.js';
 
 const jwtConfig = defineConfig({
   schema: z.object({

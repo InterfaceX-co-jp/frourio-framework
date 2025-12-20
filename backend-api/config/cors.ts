@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod';
-import { defineConfig, type ConfigType } from '$/@frouvel/kaname/config';
-import { env } from '../env';
+import { defineConfig, type ConfigType } from '../@frouvel/kaname/config/index.js';
+import { env } from '../env.js';
 
 // Helper to get CORS origins - must be defined before use
 const CORS_ORIGINS = [

@@ -5,8 +5,11 @@
  */
 
 import { z } from 'zod';
-import { defineConfig, type ConfigType } from '$/@frouvel/kaname/config';
-import { env } from '../env';
+import {
+  defineConfig,
+  type ConfigType,
+} from '../@frouvel/kaname/config/index.js';
+import { env } from '../env.js';
 
 const sentryConfig = defineConfig({
   schema: z.object({
