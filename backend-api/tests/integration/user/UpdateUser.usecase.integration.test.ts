@@ -14,7 +14,7 @@ import { DB } from '$/@frouvel/kaname/database';
 class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
   protected async setUpBeforeClass(): Promise<void> {
     await super.setUpBeforeClass();
-    
+
     // Initialize Drizzle client and register with DB facade
     const db = getDrizzleClient();
     DB.register('default', db, 'drizzle');
@@ -23,20 +23,18 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
   run() {
     this.suite('UpdateUserUseCase Integration Tests', () => {
       this.test('can update user name', async () => {
-        // Arrange: Create a test user
-        const user = await this.prisma.user.create({
-          data: {
-            name: fake.name(),
-            email: fake.email(),
-            age: fake.number(20, 60),
-          },
+        const userRepository = new UserRepositoryDrizzle();
+        const user = await userRepository.create({
+          name: fake.name(),
+          email: fake.email(),
+          age: fake.number(20, 60),
         });
 
         const newName = fake.name();
 
         // Act: Update the user's name
         const result = await new UpdateUserUseCase({
-          userRepository: new UserRepositoryDrizzle(),
+          userRepository,
         }).execute({
           id: user.id,
           data: { name: newName },
@@ -57,19 +55,18 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
       this.test('can update user email', async () => {
         // Arrange
-        const user = await this.prisma.user.create({
-          data: {
-            name: fake.name(),
-            email: fake.email(),
-            age: fake.number(20, 60),
-          },
+        const userRepository = new UserRepositoryDrizzle();
+        const user = await userRepository.create({
+          name: fake.name(),
+          email: fake.email(),
+          age: fake.number(20, 60),
         });
 
         const newEmail = fake.email();
 
         // Act
         const result = await new UpdateUserUseCase({
-          userRepository: new UserRepositoryDrizzle(),
+          userRepository,
         }).execute({
           id: user.id,
           data: { email: newEmail },
@@ -89,19 +86,18 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
       this.test('can update user age', async () => {
         // Arrange
-        const user = await this.prisma.user.create({
-          data: {
-            name: fake.name(),
-            email: fake.email(),
-            age: 25,
-          },
+        const userRepository = new UserRepositoryDrizzle();
+        const user = await userRepository.create({
+          name: fake.name(),
+          email: fake.email(),
+          age: 25,
         });
 
         const newAge = 30;
 
         // Act
         const result = await new UpdateUserUseCase({
-          userRepository: new UserRepositoryDrizzle(),
+          userRepository,
         }).execute({
           id: user.id,
           data: { age: newAge },
@@ -119,12 +115,11 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
       this.test('can update multiple fields at once', async () => {
         // Arrange
-        const user = await this.prisma.user.create({
-          data: {
-            name: fake.name(),
-            email: fake.email(),
-            age: 25,
-          },
+        const userRepository = new UserRepositoryDrizzle();
+        const user = await userRepository.create({
+          name: fake.name(),
+          email: fake.email(),
+          age: 25,
         });
 
         const updates = {
@@ -135,7 +130,7 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
         // Act
         const result = await new UpdateUserUseCase({
-          userRepository: new UserRepositoryDrizzle(),
+          userRepository,
         }).execute({
           id: user.id,
           data: updates,
@@ -158,12 +153,11 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
       this.test('returns updated timestamp', async () => {
         // Arrange
-        const user = await this.prisma.user.create({
-          data: {
-            name: fake.name(),
-            email: fake.email(),
-            age: 25,
-          },
+        const userRepository = new UserRepositoryDrizzle();
+        const user = await userRepository.create({
+          name: fake.name(),
+          email: fake.email(),
+          age: 25,
         });
 
         const originalUpdatedAt = user.updatedAt;
@@ -173,7 +167,7 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
         // Act
         const result = await new UpdateUserUseCase({
-          userRepository: new UserRepositoryDrizzle(),
+          userRepository,
         }).execute({
           id: user.id,
           data: { name: fake.name() },
@@ -203,12 +197,11 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
       this.test('can update with empty data object (no changes)', async () => {
         // Arrange
-        const user = await this.prisma.user.create({
-          data: {
-            name: fake.name(),
-            email: fake.email(),
-            age: 25,
-          },
+        const userRepository = new UserRepositoryDrizzle();
+        const user = await userRepository.create({
+          name: fake.name(),
+          email: fake.email(),
+          age: 25,
         });
 
         const originalName = user.name;
@@ -217,7 +210,7 @@ class UpdateUserUseCaseIntegrationTest extends TestCaseDatabase {
 
         // Act
         const result = await new UpdateUserUseCase({
-          userRepository: new UserRepositoryDrizzle(),
+          userRepository,
         }).execute({
           id: user.id,
           data: {},
