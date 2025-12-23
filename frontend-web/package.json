@@ -34,7 +34,7 @@
     "dayjs": "^1.11.19",
     "jotai": "^2.15.1",
     "js-cookie": "^3.0.5",
-    "next": "16.0.9",
+    "next": "16.0.10",
     "react": "^19",
     "react-dom": "^19",
     "react-hook-form": "^7.66.0",
