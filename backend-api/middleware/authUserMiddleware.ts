@@ -1,25 +1,24 @@
-// import { jwtConfig } from '$/config/jwt';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
-// interface JwtPayload {
-//   id: string;
-//   email: string;
-//   scope: string[];
-//   sub: string;
-//   iat: number;
-//   exp: number;
-// }
+interface JwtPayload {
+  id: string;
+  email: string;
+  scope: string[];
+  sub: string;
+  iat: number;
+  exp: number;
+}
 
-export const authDigUserMiddleware = async (
-  req: FastifyRequest,
+type JwtVerifiedRequest = FastifyRequest & {
+  jwtVerify: () => Promise<JwtPayload>;
+};
+
+export const authUserMiddleware = async (
+  req: JwtVerifiedRequest,
   reply: FastifyReply,
 ) => {
   try {
-    // const verified: JwtPayload = await req.jwtVerify();
-    // if (!verified.scope.some((el) => jwtConfig.scope.user.dig.includes(el))) {
-    //   throw new Error(`
-    //   Required ${jwtConfig.scope.user.dig} invalid scope given: ${verified.scope}`);
-    // }
+    const _verified: JwtPayload = await req.jwtVerify(); // eslint-disable-line @typescript-eslint/no-unused-vars
   } catch (err) {
     console.error('JWT verify error', err);
     reply.send(err);

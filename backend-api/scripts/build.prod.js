@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { build } = require('esbuild');
-const config = require('./config.common');
-// const { sentryEsbuildPlugin } = require('@sentry/esbuild-plugin');
+import { build } from 'esbuild';
+import config from './config.common.js';
 
 build({
   ...config,
@@ -16,7 +14,7 @@ build({
     // sentryEsbuildPlugin({
     //   authToken: process.env.SENTRY_AUTH_TOKEN,
     //   org: 'interfacex',
-    //   project: process.env.SENTRY_PROJECT_NAME,
+    //   project: 'PROJECT NAME',
     // }),
   ],
 }).catch(() => process.exit(1));

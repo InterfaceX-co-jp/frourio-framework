@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { context } = require('esbuild');
-const config = require('./config.common');
+import { context } from 'esbuild';
+import config from './config.common.js';
 
 context({
   ...config,
   define: { 'process.env.NODE_ENV': `"development"` },
+  sourcemap: true,
 }).then((ctx) => ctx.watch());

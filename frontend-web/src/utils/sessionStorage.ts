@@ -1,4 +1,4 @@
-const SESSION_STORAGE_PREFIX = 'dig_' as const
+import { SESSION_STORAGE_PREFIX } from '@/config/app'
 
 type SessionStorageKey = `${typeof SESSION_STORAGE_PREFIX}${string}`
 

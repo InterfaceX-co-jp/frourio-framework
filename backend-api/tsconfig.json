@@ -2,9 +2,9 @@
   "compilerOptions": {
     "downlevelIteration": true,
     "esModuleInterop": true,
-    "lib": ["dom"],
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "target": "ES2022",
+    "moduleResolution": "nodenext",
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
@@ -14,10 +14,22 @@
     "skipLibCheck": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "target": "es6",
     "incremental": true,
     "types": ["vitest/globals"]
   },
-  "include": ["**/*.ts", "**/*.js", ".eslintrc.js"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.js",
+    "eslint.config.mjs",
+    "vite.config.mts",
+    "aspida.config.mjs",
+    "scripts/config.common.js",
+    "scripts/build.prod.js",
+    "scripts/build.dev.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "$server.ts",
+    "@frouvel/kaname/scripts/**/*.ts"
+  ]
 }
