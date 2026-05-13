@@ -11,11 +11,13 @@ const defineStorage = <T>(args: { get: () => T; set: (arg: T) => void; remove: (
 const ADMIN_AUTH_STATE_KEY: SessionStorageKey = `${SESSION_STORAGE_PREFIX}admin_AuthState`
 const USER_COOKIE_AUTH_STATE_KEY: SessionStorageKey = `${SESSION_STORAGE_PREFIX}user_AuthState`
 
-export const adminAuthStateInSessionStorage = defineStorage<{ token: string }>({
+export const adminAuthStateInSessionStorage = defineStorage<{ token: string; role: string }>({
   get: () => {
     const item = getItem({ key: ADMIN_AUTH_STATE_KEY })
 
-    return item !== null ? (JSON.parse(item) as { token: string }) : { token: '' }
+    return item !== null
+      ? (JSON.parse(item) as { token: string; role: string })
+      : { token: '', role: '' }
   },
   set: (value) => setItem({ key: ADMIN_AUTH_STATE_KEY, value: JSON.stringify(value) }),
   remove: () => removeItem({ key: ADMIN_AUTH_STATE_KEY }),

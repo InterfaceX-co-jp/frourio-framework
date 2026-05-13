@@ -6,12 +6,22 @@ type CookieStorageKey = `${typeof COOKIE_STORAGE_PREFIX}${string}`
 const defineStorage = <T>(args: { get: () => T; set: (arg: T) => void; remove: () => void }) => args
 
 export const ADMIN_COOKIE_AUTH_STATE_KEY: CookieStorageKey = `${COOKIE_STORAGE_PREFIX}admin_AuthState`
+export const ADMIN_COOKIE_ROLE_KEY: CookieStorageKey = `${COOKIE_STORAGE_PREFIX}admin_Role`
 export const USER_COOKIE_AUTH_STATE_KEY: CookieStorageKey = `${COOKIE_STORAGE_PREFIX}user_AuthState`
 
-export const adminAuthStateInCookieStorage = defineStorage<{ token: string }>({
-  get: () => ({ token: Cookies.get(ADMIN_COOKIE_AUTH_STATE_KEY) ?? '' }),
-  set: (args) => Cookies.set(ADMIN_COOKIE_AUTH_STATE_KEY, args.token),
-  remove: () => Cookies.remove(ADMIN_COOKIE_AUTH_STATE_KEY),
+export const adminAuthStateInCookieStorage = defineStorage<{ token: string; role: string }>({
+  get: () => ({
+    token: Cookies.get(ADMIN_COOKIE_AUTH_STATE_KEY) ?? '',
+    role: Cookies.get(ADMIN_COOKIE_ROLE_KEY) ?? '',
+  }),
+  set: (args) => {
+    Cookies.set(ADMIN_COOKIE_AUTH_STATE_KEY, args.token)
+    Cookies.set(ADMIN_COOKIE_ROLE_KEY, args.role)
+  },
+  remove: () => {
+    Cookies.remove(ADMIN_COOKIE_AUTH_STATE_KEY)
+    Cookies.remove(ADMIN_COOKIE_ROLE_KEY)
+  },
 })
 
 export const userAuthStateInCookieStorage = defineStorage<{ token: string }>({
