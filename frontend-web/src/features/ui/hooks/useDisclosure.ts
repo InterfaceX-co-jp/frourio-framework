@@ -1,3 +1,4 @@
+// disable-eslint @typescript-eslint/no-unused-expressions
 //https://github.com/mantinedev/mantine/blob/master/src/mantine-hooks/src/use-disclosure/use-disclosure.ts
 import { useCallback, useState } from 'react'
 
@@ -26,7 +27,11 @@ export function useDisclosure(initialState = false, callbacks?: { onOpen?: () =>
   }, [onClose])
 
   const toggle = useCallback(() => {
-    opened ? close() : open()
+    if (opened) {
+      close()
+    } else {
+      open()
+    }
   }, [close, open, opened])
 
   return [opened, { open, close, toggle }] as const

@@ -12,6 +12,7 @@ jobs:
       API_SERVER_PORT: 8080
       API_ORIGIN: http://localhost:8080
       API_BASE_PATH: /api
+      API_JWT_SECRET: test_secret
       DATABASE_URL: postgresql://root:test@localhost:5432/test
       TEST_DATABASE_URL: postgresql://root:test@localhost:5432/test
     services:
@@ -23,62 +24,65 @@ jobs:
           POSTGRES_DB: test
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
-      # - name: Setup testing environment
-      #   run: |
-      #     docker-compose up -d
+          node-version: 24
       - uses: actions/cache@v4
         id: root-npm-cache
         with:
           path: "node_modules"
-          key: client-npm-${{ hashFiles('package-lock.json') }}
-      - uses: actions/cache@v4
-        id: client-npm-cache
-        with:
-          path: "frontend-web/node_modules"
-          key: client-npm-${{ hashFiles('frontend-web/package-lock.json') }}
+          key: root-npm-v2-${{ hashFiles('package-lock.json') }}
       - uses: actions/cache@v4
         id: server-npm-cache
         with:
           path: "backend-api/node_modules"
-          key: client-npm-${{ hashFiles('backend-api/package-lock.json') }}
+          key: server-npm-v2-${{ hashFiles('backend-api/package-lock.json') }}
+      - uses: actions/cache@v4
+        id: client-npm-cache
+        with:
+          path: "frontend-web/node_modules"
+          key: client-npm-v2-${{ hashFiles('frontend-web/package-lock.json') }}
       - run: npm install
         if: steps.root-npm-cache.outputs.cache-hit != 'true'
-      - run: npm install --prefix frontend-web
-        if: steps.client-npm-cache.outputs.cache-hit != 'true'
       - run: npm install --prefix backend-api
         if: steps.server-npm-cache.outputs.cache-hit != 'true'
+      - run: npm install --prefix frontend-web
+        if: steps.client-npm-cache.outputs.cache-hit != 'true'
       - name: Execute frontend lint
-        uses: reviewdog/action-eslint@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review # Change reporter.
-          workdir: .
-          eslint_flags: "frontend-web/"
+        run: npm run lint --prefix frontend-web
       - name: Execute backend lint
-        uses: reviewdog/action-eslint@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review # Change reporter.
-          workdir: .
-          eslint_flags: "backend-api/"
-      - name: Setup DB
-        run: |
-          sudo systemctl start postgresql.service
-      - run: npm run generate
-      - run: npm run typecheck
+        run: npm run lint --prefix backend-api
+      - name: Generate code
+        run: npm run generate
+        env:
+          API_SERVER_PORT: ${{ env.API_SERVER_PORT }}
+          API_ORIGIN: ${{ env.API_ORIGIN }}
+          API_BASE_PATH: ${{ env.API_BASE_PATH }}
+          API_JWT_SECRET: ${{ env.API_JWT_SECRET }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          TEST_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Type check
+        run: npm run typecheck
+        env:
+          API_SERVER_PORT: ${{ env.API_SERVER_PORT }}
+          API_ORIGIN: ${{ env.API_ORIGIN }}
+          API_BASE_PATH: ${{ env.API_BASE_PATH }}
+          API_JWT_SECRET: ${{ env.API_JWT_SECRET }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          TEST_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
       - name: Test
         run: |
           export NODE_OPTIONS="--max_old_space_size=4000"
           cd backend-api
           npm run migrate:dev 
           npm run test
-        env:
-          API_JWT_SECRET: test_secret

@@ -1,11 +1,11 @@
-import { initialize } from '$/prisma/__generated__/fabbrica';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import util from 'util';
 import { exec } from 'child_process';
-import { getPrismaClient } from '$/service/getPrismaClient';
-import { API_SERVER_PORT } from '$/env';
-import { init } from '$/service/app';
+import { getPrismaClient } from '$/@frouvel/kaname/database';
+import { env } from '$/env';
+import app from '$/bootstrap/app';
+import type { HttpKernel } from '$/@frouvel/kaname/foundation';
 
 let server: FastifyInstance;
 const prisma = getPrismaClient();
@@ -28,11 +28,9 @@ export async function refreshDatabase() {
   }
 }
 
-const prismaClient = getPrismaClient();
-initialize({ prisma: prismaClient });
-
 const unneededServer = (file: { filepath?: string } | undefined) => {
-  return !file?.filepath?.includes('test.ts');
+  // Only start server for integration tests
+  return !file?.filepath?.includes('integration.test');
 };
 
 const isIntegrationTest = (file: { filepath?: string } | undefined) => {
@@ -42,11 +40,12 @@ const isIntegrationTest = (file: { filepath?: string } | undefined) => {
 let isMigrated = false;
 
 beforeAll(async (info) => {
-  if (unneededServer(info)) return;
+  if (unneededServer({ filepath: info.file.filepath })) return;
 
-  server = init();
+  const kernel = app.make<HttpKernel>('HttpKernel');
+  server = await kernel.handle();
   // since +1 is used for websocket, +11 is used for testing API server
-  await server.listen({ port: API_SERVER_PORT + 11, host: '0.0.0.0' });
+  await server.listen({ port: env.API_SERVER_PORT + 11, host: '0.0.0.0' });
 
   if (!isMigrated) {
     await util
@@ -88,7 +87,12 @@ afterEach(async (info) => {
 });
 
 afterAll(async (info) => {
-  if (unneededServer(info)) return;
+  if (
+    unneededServer({
+      filepath: info.file.filepath,
+    })
+  )
+    return;
 
   vi.clearAllMocks();
   vi.clearAllTimers();

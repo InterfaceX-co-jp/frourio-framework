@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as the base image
-FROM node:20.18.0
+FROM node:24.10.0
 
 # Set working directory
 WORKDIR /usr/src/app
@@ -9,7 +9,7 @@ COPY package*.json .
 COPY . .
 
 # Install dependencies
-RUN npm install
+RUN npm i
 RUN npm run generate
 RUN node ./scripts/build.prod.js
 
@@ -17,4 +17,5 @@ RUN node ./scripts/build.prod.js
 EXPOSE ${API_SERVER_PORT} 
 
 # Define the command to run the application.
-CMD [ "npm", "run", "start" ]
+# Use node directly with the compiled JavaScript file
+CMD ["npm", "run", "start"]

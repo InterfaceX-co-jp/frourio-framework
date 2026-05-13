@@ -1,43 +1,46 @@
 {
-  "name": "frourio-template-railway-tailwind",
+  "name": "frourio-framework",
   "version": "1.0.0",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "run-p dev:*",
+    "dev": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run dev:client\" \"npm run dev:server\" -c blue,cyan",
     "dev:client": "npm run dev --prefix frontend-web",
     "dev:server": "npm run dev --prefix backend-api",
-    "generate": "run-p generate:*",
+    "generate": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run generate:client\" \"npm run generate:server\" -c blue,cyan",
     "generate:client": "npm run generate --prefix frontend-web",
     "generate:server": "npm run generate --prefix backend-api",
-    "test": "run-p test:*",
+    "test": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run test:client\" \"npm run test:server\" -c blue,cyan",
     "test:client": "npm run test --prefix frontend-web",
     "test:server": "npm run test --prefix backend-api",
-    "typecheck": "run-p typecheck:*",
+    "typecheck": "concurrently --raw --names=\"Frontend(Web),Backend(API)\" \"npm run typecheck:client\" \"npm run typecheck:server\" -c blue,cyan",
     "typecheck:client": "npm run typecheck --prefix frontend-web",
-    "typecheck:server": "npm run typecheck --prefix backend-api"
+    "typecheck:server": "npm run typecheck --prefix backend-api",
+    "lint": "concurrently --names=\"Frontend(Web),Backend(API)\" \"npm run lint:client\" \"npm run lint:server\" -c blue,cyan",
+    "lint:client": "npm run lint --prefix frontend-web",
+    "lint:server": "npm run lint --prefix backend-api",
+    "artisan": "npm run artisan --prefix backend-api"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
     "aspida": "^1.14.0",
-    "eslint": "^8.46.0",
-    "eslint-config-next": "^14.0.0",
-    "eslint-config-prettier": "^9.0.0",
-    "npm-run-all2": "^6.2.0",
-    "pathpida": "^0.22.0",
-    "prettier": "^2.8.8",
-    "prettier-plugin-organize-imports": "^3.2.3",
-    "react": "^18.2.0",
-    "stylelint": "^14.16.1",
-    "stylelint-config-prettier": "^9.0.5",
-    "stylelint-config-recess-order": "^3.1.0",
-    "stylelint-config-standard": "^29.0.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.1.6",
-    "vitest": "^0.34.1"
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "concurrently": "^9.2.1",
+    "pathpida": "^0.25.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "react": "^19.2.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.3",
+    "vitest": "^4.0.8"
+  },
+  "dependencies": {
+    "frourio-framework-prisma-generators": "^6.9.0"
   }
 }
