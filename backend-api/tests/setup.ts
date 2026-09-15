@@ -39,8 +39,8 @@ const isIntegrationTest = (file: { filepath?: string } | undefined) => {
 
 let isMigrated = false;
 
-beforeAll(async (info) => {
-  if (unneededServer({ filepath: info.file.filepath })) return;
+beforeAll(async (_context, suite) => {
+  if (unneededServer({ filepath: suite.file.filepath })) return;
 
   const kernel = app.make<HttpKernel>('HttpKernel');
   server = await kernel.handle();
@@ -86,10 +86,10 @@ afterEach(async (info) => {
   await prisma.$disconnect();
 });
 
-afterAll(async (info) => {
+afterAll(async (_context, suite) => {
   if (
     unneededServer({
-      filepath: info.file.filepath,
+      filepath: suite.file.filepath,
     })
   )
     return;
