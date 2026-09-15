@@ -151,8 +151,8 @@ export function setupTestEnvironment(options: TestEnvironmentOptions = {}) {
   };
 
   // Register lifecycle hooks
-  beforeAll(async (info) => {
-    if (!needsServer({ filepath: info.file.filepath })) return;
+  beforeAll(async (_context, suite) => {
+    if (!needsServer({ filepath: suite.file.filepath })) return;
 
     // Run migrations once
     if (runMigrations && !isMigrated) {
@@ -198,8 +198,8 @@ export function setupTestEnvironment(options: TestEnvironmentOptions = {}) {
     await prisma.$disconnect();
   });
 
-  afterAll(async (info) => {
-    if (!needsServer({ filepath: info.file.filepath })) return;
+  afterAll(async (_context, suite) => {
+    if (!needsServer({ filepath: suite.file.filepath })) return;
 
     // Clear mocks
     vi.clearAllMocks();
